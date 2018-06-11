@@ -1,0 +1,20 @@
+<resources>
+
+    <string name="app_name">Асыл Кетринг</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_personnel_list">PersonnelListActivity</string>
+    <string name="prompt">Мұғалім</string>
+    <string name="spinner1_prompt">Түскі ас</string>
+    <string name="title_activity_enter_new_eater">EnterNewEaterActivit</string>
+
+    <string name="title_breakfast">Таңғы ас</string>
+    <string name="title_lunch">Түскі ас</string>
+    <string name="title_dinner">Кешкі ас</string>
+    <string name="delete">өшіру</string>
+
+</resources>

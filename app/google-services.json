@@ -1,0 +1,105 @@
+{
+  "project_info": {
+    "project_number": "614869069124",
+    "firebase_url": "https://bonappetit-9b2a0.firebaseio.com",
+    "project_id": "bonappetit-9b2a0",
+    "storage_bucket": "bonappetit-9b2a0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:614869069124:android:a58b7fe225797ae7",
+        "android_client_info": {
+          "package_name": "com.example.mykty.askhanaapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "614869069124-4h8lrkenk4q7c54d740mnait0uvot5jb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mykty.askhanaapp",
+            "certificate_hash": "cee65f26522f0e1481c8d081be562c8eb3c6b03a"
+          }
+        },
+        {
+          "client_id": "614869069124-20lefpra0pqaoivh7i6fefs8n9iv4mp1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-7trqeHLlIlhIpT2kzy_F5uEf1b7qA-g"
+        },
+        {
+          "current_key": "AIzaSyDzAGLisPoKf9g_xmhdD0J2l_B0_9G1Ts0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "614869069124-20lefpra0pqaoivh7i6fefs8n9iv4mp1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:614869069124:android:a3efedf669b34498",
+        "android_client_info": {
+          "package_name": "com.example.mykty.askhanacatering"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "614869069124-7b5qtensneji2c786kr8fglkn5chckqi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mykty.askhanacatering",
+            "certificate_hash": "cee65f26522f0e1481c8d081be562c8eb3c6b03a"
+          }
+        },
+        {
+          "client_id": "614869069124-20lefpra0pqaoivh7i6fefs8n9iv4mp1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-7trqeHLlIlhIpT2kzy_F5uEf1b7qA-g"
+        },
+        {
+          "current_key": "AIzaSyDzAGLisPoKf9g_xmhdD0J2l_B0_9G1Ts0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "614869069124-20lefpra0pqaoivh7i6fefs8n9iv4mp1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
