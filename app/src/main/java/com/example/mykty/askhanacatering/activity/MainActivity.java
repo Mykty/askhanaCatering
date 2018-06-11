@@ -83,8 +83,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         todayFragment = new TodayFragment();
         personnelListFragment = new PersonnelListFragment();
         orderFragment = new OrderFragment();
-
-//        changeFragment(todayFragment);
+        
         changeFragment(todayFragment);
     }
 
