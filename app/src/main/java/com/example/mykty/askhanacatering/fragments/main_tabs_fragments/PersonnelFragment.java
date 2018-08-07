@@ -303,7 +303,7 @@ public class PersonnelFragment extends Fragment {
                     String idNumber = pIdNumber.getText().toString();
                     String type = "others";
 
-                    Personnel personnel = new Personnel("" + info, idNumber, "Қонақ", type);
+                    Personnel personnel = new Personnel("" + info, idNumber,"card_n", "Қонақ", type);
                     String newKey = mDatabaseRef.child("personnel_store").child("store").push().getKey();
                     mDatabaseRef.child("personnel_store").child("store").child(newKey).setValue(personnel);
 

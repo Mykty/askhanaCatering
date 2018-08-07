@@ -21,4 +21,17 @@
             android:title="Тапсырыстар" />
     </group>
 
+    <item android:title="Есептер">
+        <menu>
+            <item
+                android:id="@+id/nav_dayli_report"
+                android:title="@string/dayli_report"
+                android:icon="@android:drawable/ic_menu_day" />
+            <item
+                android:id="@+id/nav_monthly_report"
+                android:title="@string/monthly_report"
+                android:icon="@android:drawable/ic_menu_month" />
+        </menu>
+    </item>
+
 </menu>

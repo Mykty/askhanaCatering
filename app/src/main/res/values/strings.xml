@@ -17,4 +17,7 @@
     <string name="title_dinner">Кешкі ас</string>
     <string name="delete">өшіру</string>
 
+    <string name="dayli_report">Күндік есеп</string>
+    <string name="monthly_report">Айлық есеп</string>
+
 </resources>

@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.example.mykty.askhanacatering.R;
 import com.example.mykty.askhanacatering.database.StoreDatabase;
+import com.example.mykty.askhanacatering.fragments.DayliReportFragment;
 import com.example.mykty.askhanacatering.fragments.OrderFragment;
 import com.example.mykty.askhanacatering.fragments.PersonnelListFragment;
 import com.example.mykty.askhanacatering.fragments.TodayFragment;
@@ -32,6 +33,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_CARD_NUMBER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_GROUP;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_ID_NUMBER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_INFO;
@@ -52,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     TodayFragment todayFragment;
     PersonnelListFragment personnelListFragment;
     OrderFragment orderFragment;
+    DayliReportFragment dayliReportFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +86,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         todayFragment = new TodayFragment();
         personnelListFragment = new PersonnelListFragment();
         orderFragment = new OrderFragment();
+        dayliReportFragment = new DayliReportFragment();
+
         
-        changeFragment(todayFragment);
+        changeFragment(dayliReportFragment);
     }
 
     public void checkCollegeVersion(){
@@ -149,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         sValues.put(COLUMN_Q_ID, student1.getQr_code());
                         sValues.put(COLUMN_INFO, student1.getName());
                         sValues.put(COLUMN_ID_NUMBER, student1.getId_number());
+                        sValues.put(COLUMN_CARD_NUMBER, student1.getCard_number());
                         sValues.put(COLUMN_GROUP, group);
                         sValues.put(COLUMN_PHOTO, student1.getPhoto());
 
@@ -183,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         ContentValues sValues = new ContentValues();
                         sValues.put(COLUMN_INFO, student1.getName());
                         sValues.put(COLUMN_ID_NUMBER, student1.getId_number());
+                        sValues.put(COLUMN_CARD_NUMBER, student1.getCard_number());
                         sValues.put(COLUMN_PHOTO, student1.getPhoto());
                         sValues.put(COLUMN_Q_ID, student1.getQr_code());
                         sValues.put(COLUMN_GROUP, lclass);
@@ -284,6 +291,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             changeFragment(personnelListFragment);
         } else if (id == R.id.nav_orders) {
             changeFragment(orderFragment);
+
+        } else if (id == R.id.nav_dayli_report) {
+            changeFragment(dayliReportFragment);
+
+        } else if (id == R.id.nav_monthly_report) {
+
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

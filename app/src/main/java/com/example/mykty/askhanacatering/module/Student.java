@@ -3,14 +3,27 @@ package com.example.mykty.askhanacatering.module;
 public class Student {
     String name;
     String id_number;
+    String card_number;
     String photo;
     String qr_code;
 
-    public Student(String name, String id_number, String photo, String qr_code){
+
+    public Student(){}
+
+    public Student(String name, String id_number, String card_number, String photo, String qr_code){
         this.name = name;
         this.id_number = id_number;
+        this.card_number = card_number;
         this.photo = photo;
         this.qr_code = qr_code;
+    }
+
+    public String getCard_number() {
+        return card_number;
+    }
+
+    public void setCard_number(String card_number) {
+        this.card_number = card_number;
     }
 
     public String getName() {

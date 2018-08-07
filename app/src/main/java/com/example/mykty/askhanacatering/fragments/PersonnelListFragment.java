@@ -50,6 +50,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_CARD_NUMBER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_ID_NUMBER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_INFO;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_OTHER_COUNT;
@@ -167,8 +168,9 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
                         otherDescText = otherDesc.getText().toString();
                     }
 
-                    Personnel personnel = new Personnel("" + info, idNumber, otherDescText, type);
                     String newKey = mDatabaseRef.child("personnel_store").child("store").push().getKey();
+
+                    Personnel personnel = new Personnel("" + info, ""+newKey, idNumber, otherDescText, type);
                     mDatabaseRef.child("personnel_store").child("store").child(newKey).setValue(personnel);
                     refreshPersonnels();
 
@@ -187,6 +189,7 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
 
             }
         });
+        
 
         btnCancel.setOnClickListener(new OnClickListener() {
             @Override
@@ -252,6 +255,7 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
 
                     String info = personnel.getInfo();
                     String idNumber = personnel.getId_number().toLowerCase();
+                    String cardNumber = personnel.getCard_number().toLowerCase();
                     String photo = personnel.getPhoto();
                     String type = personnel.getType();
                     totalC++;
@@ -265,6 +269,7 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
                     ContentValues personnelValue = new ContentValues();
                     personnelValue.put(COLUMN_INFO, info);
                     personnelValue.put(COLUMN_ID_NUMBER, idNumber);
+                    personnelValue.put(COLUMN_CARD_NUMBER, cardNumber);
                     personnelValue.put(COLUMN_PHOTO, photo);
                     personnelValue.put(COLUMN_TYPE, type);
 

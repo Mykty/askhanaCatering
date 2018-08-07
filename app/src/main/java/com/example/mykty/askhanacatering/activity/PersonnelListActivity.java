@@ -131,7 +131,8 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                 personalleStore.add(new Personnel("" + cursor.getString(0),
                         ""+cursor.getString(1),
                         ""+cursor.getString(2),
-                        ""+cursor.getString(3)));
+                        ""+cursor.getString(3),
+                        ""+cursor.getString(4)));
             }
         }
 
@@ -146,7 +147,8 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                     personalleStore.add(new Personnel("" + cursor2.getString(0),
                             ""+cursor2.getString(1),
                             ""+cursor2.getString(2),
-                            ""+cursor2.getString(3)));
+                            ""+cursor2.getString(3),
+                            ""+cursor.getString(4)));
                 }
             }
         }
@@ -205,7 +207,7 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
         Button del = alert.findViewById(R.id.btnDel);
 
         tvName.setText(tName);
-        oIdNumber.setText("ID Number: " + id_code);
+        oIdNumber.setText("CARD Number: " + id_code);
 
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
@@ -215,7 +217,7 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                         if (isNetworkAvailable(PersonnelListActivity.this)) {
                             updateIdNumber(tName, nIdNumber.getText().toString());
                             fillPersonnel(type);
-                            Toast.makeText(PersonnelListActivity.this, tName+" ID Number өзгерді", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(PersonnelListActivity.this, tName+" CARD Number өзгерді", Toast.LENGTH_SHORT).show();
                         }
 
                         break;

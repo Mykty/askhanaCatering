@@ -143,7 +143,6 @@ public class OrderFragment extends Fragment implements View.OnClickListener, Vie
 
     }
 
-
     public void createDateAndTimeDialogs() {
         Calendar calendar = Calendar.getInstance();
         mYear = calendar.get(Calendar.YEAR);

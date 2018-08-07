@@ -3,16 +3,26 @@ package com.example.mykty.askhanacatering.module;
 public class Personnel{
     String info;
     String id_number;
+    String card_number;
     String photo;
     String type;
 
     public Personnel(){}
 
-    public Personnel(String info, String id_number, String photo, String type){
+    public Personnel(String info, String id_number, String card_number, String photo, String type){
         this.info = info;
+        this.card_number = card_number;
         this.id_number = id_number;
         this.photo = photo;
         this.type = type;
+    }
+
+    public String getCard_number() {
+        return card_number;
+    }
+
+    public void setCard_number(String card_number) {
+        this.card_number = card_number;
     }
 
     public String getInfo() {

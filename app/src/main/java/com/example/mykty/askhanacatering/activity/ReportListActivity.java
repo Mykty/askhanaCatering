@@ -103,7 +103,8 @@ public class ReportListActivity extends AppCompatActivity implements SearchView.
                 Personnel personnel = new Personnel("" + cursor.getString(0),
                         "" + cursor.getString(1),
                         "" + cursor.getString(2),
-                        "" + cursor.getString(3));
+                        "" + cursor.getString(3),
+                        "" + cursor.getString(4));
 
                 store.add(personnel);
             }
@@ -124,6 +125,7 @@ public class ReportListActivity extends AppCompatActivity implements SearchView.
 
                 Personnel personnel = new Personnel("" + cursor.getString(1),
                         "" + cursor.getString(2),
+                        "" + cursor.getString(3),
                         "" + cursor.getString(4),
                         "" + cursor.getString(0));
 
