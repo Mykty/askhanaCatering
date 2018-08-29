@@ -9,15 +9,127 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_personnel_list">PersonnelListActivity</string>
     <string name="prompt">Мұғалім</string>
+    <string name="group">Группа</string>
     <string name="spinner1_prompt">Түскі ас</string>
     <string name="title_activity_enter_new_eater">EnterNewEaterActivit</string>
 
+    <string name="main_fragment">Бастысы</string>
+    <string name="personnel_list">Персонал тізімі</string>
+    <string name="college_list">Колледж тізімі</string>
+    <string name="lyceum_list">Лицей тізімі</string>
+    <string name="orders">Тапсырыстар</string>
+    <string name="report_title">Есептер</string>
+    <string name="all_title">Барлығы: </string>
+    <string name="payment">Төлем </string>
+    <string name="enter_new_student">Жаңа студент енгізу</string>
+
+    <string name="s_info">аты-жөні</string>
+    <string name="s_info_mistake">аты-жөні толтырылмады</string>
+    <string name="read_card_number">card number оқыту</string>
+    <string name="read_card_number_mistake">card number оқытылмады</string>
+    <string name="select_group">Группасын таңдаңыз:</string>
+    <string name="select_group_mistake">группа таңдалмады</string>
+    <string name="photo">Сурет таңдау</string>
+    <string name="qr_code_scanner">Qr Code сканнер жасау</string>
+    <string name="qr_code_scanner_mistake">Qr Code сканнернер жасалмады</string>
+
+    <string name="photoSelectMistake">Сурет таңдалмады</string>
+    <string name="photoSelected">Сурет таңдалды</string>
+    <string name="photoLoading">Сурет сақталып жатыр...</string>
+    <string name="daySelectMistake">Күндер таңдалған жоқ</string>
+    <string name="newDaySelectMistake">Жаңа күн таңдалған жоқ</string>
+    <string name="foodSelectMistake">Тамақ кезеңі таңдалған жоқ</string>
+    <string name="daysLeft">Қалғаны: </string>
+    <string name="day">күн</string>
+    <string name="selectNewDay">Жаңа күн:</string>
+    <string name="selectDay">Бұл күнді таңдауға болмайды</string>
+    <string name="breakfastSelected">Бұл күнде таңғы ас бар!</string>
+    <string name="lunchSelected">Бұл күнде түскі ас бар!</string>
+    <string name="dinnerSelected">Бұл күнде кешкі ас бар!</string>
+    <string name="selectAnotherDay">Басқа күнді таңдаңыз</string>
+
+    <string name="oneB">1 таңғы ас:</string>
+    <string name="oneL">1 түскі ас:</string>
+    <string name="oneD">1 кешкі ас:</string>
+
     <string name="title_breakfast">Таңғы ас</string>
+    <string name="title_poldnik1">Полдник1</string>
+    <string name="title_poldnik2">Полдник2</string>
     <string name="title_lunch">Түскі ас</string>
     <string name="title_dinner">Кешкі ас</string>
     <string name="delete">өшіру</string>
+    <string name="delete2">Өшіру</string>
+    <string name="deleted">өшірілді!</string>
 
     <string name="dayli_report">Күндік есеп</string>
     <string name="monthly_report">Айлық есеп</string>
+    <string name="dayli_report_title">Күндік есеп жинастыру</string>
+
+    <string name="selectDays">Күндерді таңдаңыз:</string>
+    <string name="selectPersons">Адамдарды таңдаңыз:</string>
+    <string name="selectTime">Тамақ кезеңін таңдаңыз:</string>
+    <string name="select">таңдау</string>
+    <string name="collectReport">Есеп жинастыру</string>
+    <string name="clearDates">Тазалау</string>
+    <string name="back">Артқа</string>
+    <string name="pay">Төлеу</string>
+    <string name="replace">Күн ауыстыру</string>
+    <string name="replace2">ауыстыру</string>
+
+    <string name="todayStr">бүгінге өту</string>
+    <string name="add_to_basket">Корзина енгізу</string>
+    <string name="calc_title">Есепке жіберу</string>
+
+    <string-array name="personsStore">
+        <item>Персонал</item>
+        <item>Колледж студенттері</item>
+        <item>Лицей оқушылары</item>
+    </string-array>
+
+    <string-array name="foodTimeStore1">
+        <item>@string/title_breakfast</item>
+        <item>@string/title_lunch</item>
+        <item>@string/title_dinner</item>
+    </string-array>
+
+    <string-array name="foodTimeStore2">
+        <item>@string/title_breakfast</item>
+        <item>@string/title_poldnik1</item>
+        <item>@string/title_lunch</item>
+        <item>@string/title_poldnik2</item>
+        <item>@string/title_dinner</item>
+    </string-array>
+
+    <string-array name="groups">
+        <item>@string/select</item>
+        <item>1-01</item>
+        <item>1-02</item>
+        <item>1-03</item>
+        <item>1-04</item>
+        <item>2-01</item>
+        <item>2-02</item>
+        <item>2-03</item>
+        <item>3-01</item>
+        <item>3-02</item>
+        <item>3-03</item>
+        <item>3-04</item>
+        <item>3-09</item>
+        <item>4-09</item>
+    </string-array>
+
+    <string-array name="monthStore">
+        <item>Қаңтар</item>
+        <item>Ақпан</item>
+        <item>Наурыз</item>
+        <item>Сәуір</item>
+        <item>Мамыр</item>
+        <item>Маусым</item>
+        <item>Шілде</item>
+        <item>Тамыз</item>
+        <item>Қыркүйек</item>
+        <item>Қазан</item>
+        <item>Қараша</item>
+        <item>Желтоқсан</item>
+    </string-array>
 
 </resources>

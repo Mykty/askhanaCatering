@@ -92,7 +92,7 @@ public class PersonnelFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_college, container, false);
-        tvDate = view.findViewById(R.id.textView2);
+        tvDate = view.findViewById(R.id.textViewTotal);
         manageDate();
         setupViews();
         personnelListCount();
@@ -180,7 +180,7 @@ public class PersonnelFragment extends Fragment {
     }
 
     public void setupViews() {
-        recyclerView = view.findViewById(R.id.my_recycler_view);
+        recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
 
         storeDb = new StoreDatabase(getActivity());

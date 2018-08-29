@@ -36,13 +36,6 @@
             android:textColorHint="#05ab9a"
             android:prompt="@string/prompt"/>
 
-
-        <!--<EditText-->
-            <!--android:id="@+id/otherDesc"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:ems="10"-->
-            <!--android:hint="басқа түсіндірмесі" />-->
     </LinearLayout>
 
     <RelativeLayout

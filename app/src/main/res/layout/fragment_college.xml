@@ -18,7 +18,7 @@
         app:srcCompat="@android:drawable/ic_input_add" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/textViewTotal"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
@@ -30,10 +30,10 @@
         android:layout_alignParentLeft="true"/>
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/my_recycler_view"
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/textView2"
+        android:layout_below="@id/textViewTotal"
         android:layout_margin="8dp"
         android:scrollbars="vertical" />
 

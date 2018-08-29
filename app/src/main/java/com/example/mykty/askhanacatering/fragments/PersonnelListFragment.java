@@ -89,7 +89,7 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_personnel, container, false);
-        getActivity().setTitle("Персонал");
+        getActivity().setTitle(getResources().getString(R.string.personnel_list));
         setupViews();
 
         if (!checkVersion()) {

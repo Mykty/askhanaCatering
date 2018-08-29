@@ -9,9 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
 import com.example.mykty.askhanacatering.R;
-import com.example.mykty.askhanacatering.fragments.new_eaters.BreakfastFragment;
-import com.example.mykty.askhanacatering.fragments.new_eaters.DinnerFragment;
-import com.example.mykty.askhanacatering.fragments.new_eaters.LunchFragment;
 
 public class EnterNewEaterActivity extends AppCompatActivity{
 
@@ -22,16 +19,13 @@ public class EnterNewEaterActivity extends AppCompatActivity{
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_home:
-
-                    changeFragment(new BreakfastFragment());
+//                    changeFragment(new BreakfastReportFragment());
                     return true;
                 case R.id.navigation_dashboard:
-
-                    changeFragment(new LunchFragment());
+//                    changeFragment(new LunchReportFragment());
                     return true;
                 case R.id.navigation_notifications:
-
-                    changeFragment(new DinnerFragment());
+//                    changeFragment(new DinnerReportFragment());
                     return true;
             }
             return false;

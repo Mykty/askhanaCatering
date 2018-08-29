@@ -1,6 +1,8 @@
 package com.example.mykty.askhanacatering.module;
 
-public class Student {
+import java.io.Serializable;
+
+public class Student  implements Serializable {
     String name;
     String id_number;
     String card_number;

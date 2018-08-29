@@ -88,7 +88,7 @@ public class PersonnelListAdapter extends RecyclerView.Adapter<PersonnelListAdap
 
         Glide.with(activity)
                 .load(item.getPhoto())
-                .placeholder(R.drawable.t_icon)
+                .placeholder(R.drawable.s_icon).fitCenter()
                 .into(holder.perImage);
 
     }

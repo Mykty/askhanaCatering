@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/foodTime"
+        android:layout_width="match_parent"
+        android:layout_height="30sp"
+        android:text="@string/selectTime" />
+
+    <RadioGroup
+        android:id="@+id/radio"
+        android:layout_below="@+id/foodTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/checkboxBreakfast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/title_breakfast" />
+
+        <RadioButton
+            android:id="@+id/checkboxLunch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/title_lunch" />
+
+
+        <RadioButton
+            android:id="@+id/checkboxDinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/title_dinner" />
+
+    </RadioGroup>
+
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_below="@+id/radio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/breakfastDetail"
+            android:layout_width="50sp"
+            android:layout_height="50sp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:src="@drawable/report_icon"
+            android:visibility="invisible" />
+
+
+        <ImageView
+            android:id="@+id/lunchDetail"
+            android:layout_width="50sp"
+            android:layout_height="50sp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:src="@drawable/report_icon"
+            android:visibility="invisible" />
+
+        <ImageView
+            android:id="@+id/dinnerDetail"
+            android:layout_width="50sp"
+            android:layout_height="50sp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:src="@drawable/report_icon"
+            android:visibility="invisible" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv"
+        android:layout_below="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="30sp"
+        android:text="@string/selectDays" />
+
+    <com.squareup.timessquare.CalendarPickerView
+        android:layout_below="@+id/tv"
+        android:id="@+id/calendar_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btnBacket"/>
+
+    <Button
+        android:id="@+id/btnBacket"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10sp"
+        android:background="@drawable/shape_select"
+        android:text="@string/add_to_basket"
+        android:layout_above="@+id/btnCalc"
+        android:textColor="@color/white" />
+
+    <Button
+        android:layout_alignParentBottom="true"
+        android:id="@+id/btnCalc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10sp"
+        android:background="@drawable/shape"
+        android:text="@string/calc_title"
+
+        android:textColor="@color/white" />
+
+</RelativeLayout>

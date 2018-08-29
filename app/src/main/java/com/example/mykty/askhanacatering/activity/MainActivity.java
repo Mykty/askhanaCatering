@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.example.mykty.askhanacatering.R;
 import com.example.mykty.askhanacatering.database.StoreDatabase;
+import com.example.mykty.askhanacatering.fragments.CollegeListFragment;
 import com.example.mykty.askhanacatering.fragments.DayliReportFragment;
 import com.example.mykty.askhanacatering.fragments.OrderFragment;
 import com.example.mykty.askhanacatering.fragments.PersonnelListFragment;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     PersonnelListFragment personnelListFragment;
     OrderFragment orderFragment;
     DayliReportFragment dayliReportFragment;
+    CollegeListFragment collegeListFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        navigationView.getMenu().getItem(0).setChecked(true);
+        navigationView.getMenu().getItem(3).setChecked(true);
 
         FirebaseApp.initializeApp(this);
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -87,14 +89,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         personnelListFragment = new PersonnelListFragment();
         orderFragment = new OrderFragment();
         dayliReportFragment = new DayliReportFragment();
-
+        collegeListFragment = new CollegeListFragment();
         
-        changeFragment(dayliReportFragment);
+        changeFragment(collegeListFragment);
     }
 
     public void checkCollegeVersion(){
         Query myTopPostsQuery = mDatabase.child("college_student_list_ver");
-        myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+        myTopPostsQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -103,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     updateCollegeStudentCurrentVersion(newVersion);
                     getCollegeStudents();
 
-                    Toast.makeText(MainActivity.this, "Колледж студенттері туралы ақпарат жаңаланды!", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MainActivity.this, "Колледж студенттері туралы ақпарат жаңаланды!", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -125,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     updateLyceumStudentCurrentVersion(newVersion);
                     getLyceumStudents();
 
-                    Toast.makeText(MainActivity.this, "Лицей студенттері туралы ақпарат жаңаланды!", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MainActivity.this, "Лицей студенттері туралы ақпарат жаңаланды!", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -139,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void getCollegeStudents(){
         storeDb.cleanCollegeStudentsTable(sqdb);
 
-        System.out.println("getAllStudents: ");
         studentsQuery = mDatabase.child("groups").orderByKey();
         studentsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -289,6 +290,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             changeFragment(todayFragment);
         } else if (id == R.id.nav_personnel) {
             changeFragment(personnelListFragment);
+
+        }else if (id == R.id.nav_college) {
+            changeFragment(collegeListFragment);
+
         } else if (id == R.id.nav_orders) {
             changeFragment(orderFragment);
 
