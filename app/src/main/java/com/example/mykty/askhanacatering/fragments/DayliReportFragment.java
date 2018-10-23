@@ -41,6 +41,18 @@ public class DayliReportFragment extends Fragment implements View.OnClickListene
     private TabLayout tabLayout;
     private ViewPager viewPager;
 
+    Dialog repoDialog, repoDialogCalendar;
+
+    private MultiSpinner spinnerPersons, spinnerTime;
+    private ArrayAdapter<String> personsStoreAdapter, foodTimeStoreAdapter;
+    String[] pStore, fTimeStore1, fTimeStore2;
+    Button selectDaysBtn, daysSelectedBtn, scrollToTodayBtn, btnReporSubmit;
+    Date minDate, today;
+    CalendarPickerView calendar;
+    List<Date> dates;
+    ArrayList<String> datesSelected;
+    SimpleDateFormat formatStr, formatStr2;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,17 +80,6 @@ public class DayliReportFragment extends Fragment implements View.OnClickListene
 
     }
 
-    Dialog repoDialog, repoDialogCalendar;
-
-    private MultiSpinner spinnerPersons, spinnerTime;
-    private ArrayAdapter<String> personsStoreAdapter, foodTimeStoreAdapter;
-    String[] pStore, fTimeStore1, fTimeStore2;
-    Button selectDaysBtn, daysSelectedBtn, scrollToTodayBtn, btnReporSubmit;
-    Date minDate, today;
-    CalendarPickerView calendar;
-    List<Date> dates;
-    ArrayList<String> datesSelected;
-    SimpleDateFormat formatStr, formatStr2;
     public void createDateDialogs() {
 
         repoDialog = new Dialog(getActivity());
@@ -125,9 +126,8 @@ public class DayliReportFragment extends Fragment implements View.OnClickListene
         spinnerTime.setAdapter(foodTimeStoreAdapter, false, onTimeSelectedListener);
         spinnerTime.setAllSelectedDisplayMode(MultiSpinner.AllSelectedDisplayMode.DisplayAllItems);
 
-
         formatStr = new SimpleDateFormat("EEEE dd.MM");
-        formatStr2 = new SimpleDateFormat("dd_MM");
+        formatStr2 = new SimpleDateFormat("dd_MM_yyyy");
 
         /*boolean[] selectedItems = new boolean[adapter.getCount()];
         selectedItems[1] = true; // select second item
@@ -160,11 +160,14 @@ public class DayliReportFragment extends Fragment implements View.OnClickListene
         }
     };
 
+
     private void setupViewPager() {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getChildFragmentManager());
         adapter.addFragment(new BreakfastReportFragment(), getResources().getString(R.string.title_breakfast));
-        adapter.addFragment(new LunchReportFragment(), getResources().getString(R.string.title_lunch));
+        adapter.addFragment(new LunchReportFragment(),  getResources().getString(R.string.title_lunch));
         adapter.addFragment(new DinnerReportFragment(), getResources().getString(R.string.title_dinner));
+
+        viewPager.setOffscreenPageLimit(3);
         viewPager.setAdapter(adapter);
     }
 
@@ -179,8 +182,11 @@ public class DayliReportFragment extends Fragment implements View.OnClickListene
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.report) {
-            repoDialog.show();
+        if (id == R.id.reportMonth) {
+
+            Intent intent = new Intent(getActivity(),DayliReportList.class);
+            startActivity(intent);
+
             return true;
         }
 

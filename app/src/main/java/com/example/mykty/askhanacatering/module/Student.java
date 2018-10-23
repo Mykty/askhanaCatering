@@ -1,5 +1,4 @@
 package com.example.mykty.askhanacatering.module;
-
 import java.io.Serializable;
 
 public class Student  implements Serializable {
@@ -8,7 +7,8 @@ public class Student  implements Serializable {
     String card_number;
     String photo;
     String qr_code;
-
+    String group;
+    String firebaseKey;
 
     public Student(){}
 
@@ -18,6 +18,32 @@ public class Student  implements Serializable {
         this.card_number = card_number;
         this.photo = photo;
         this.qr_code = qr_code;
+    }
+
+    public Student(String firebaseKey,  String qr_code, String name, String id_number, String card_number, String group, String photo){
+        this.name = name;
+        this.id_number = id_number;
+        this.card_number = card_number;
+        this.photo = photo;
+        this.qr_code = qr_code;
+        this.group = group;
+        this.firebaseKey = firebaseKey;
+    }
+
+    public String getFirebaseKey() {
+        return firebaseKey;
+    }
+
+    public void setFirebaseKey(String firebaseKey) {
+        this.firebaseKey = firebaseKey;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public String getCard_number() {

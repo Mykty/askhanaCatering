@@ -35,6 +35,7 @@
                 android:id="@+id/sInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:singleLine="true"
                 android:ems="10"
                 android:hint="@string/s_info" />
 
@@ -49,24 +50,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
+                android:singleLine="true"
                 android:hint="@string/read_card_number" />
 
         </android.support.design.widget.TextInputLayout>
 
-        <Button
-            android:id="@+id/scannerQrCode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/button_style2"
-            android:text="@string/qr_code_scanner" />
+        <!--<Button-->
+            <!--android:id="@+id/scannerQrCode"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:background="@drawable/button_style2"-->
+            <!--android:text="@string/qr_code_scanner" />-->
 
-        <Button
-            android:id="@+id/choosePhoto"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10sp"
-            android:background="@drawable/button_style2"
-            android:text="@string/photo" />
+        <!--<Button-->
+            <!--android:id="@+id/choosePhoto"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginTop="10sp"-->
+            <!--android:background="@drawable/button_style2"-->
+            <!--android:text="@string/photo" />-->
 
     </LinearLayout>
 

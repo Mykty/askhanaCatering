@@ -1,28 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!--<android.support.design.widget.FloatingActionButton-->
-        <!--android:id="@+id/fab"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="bottom|end"-->
-        <!--android:layout_alignParentBottom="true"-->
-        <!--android:layout_alignParentRight="true"-->
-        <!--android:layout_margin="20dp"-->
-        <!--android:backgroundTint="@color/fabColor"-->
-        <!--app:srcCompat="@android:drawable/ic_input_add" />-->
-
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/textViewTotal"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center"
-        android:text="Lyceum"
+        android:text="Today"
         android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -30,12 +18,22 @@
         android:layout_alignParentLeft="true"/>
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/my_recycler_view"
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/textView2"
+        android:layout_height="match_parent"
+        android:layout_below="@id/textViewTotal"
         android:layout_margin="8dp"
         android:scrollbars="vertical" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_guest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="20dp"
+        android:backgroundTint="@color/fabColor"
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </RelativeLayout>

@@ -182,7 +182,7 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                 new RecyclerItemClickListener(this, recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, final int position) {
-                        showDialog(personalleStore.get(position).getInfo(), personalleStore.get(position).getId_number(), position);
+                        showDialog(personalleStore.get(position).getInfo(), personalleStore.get(position).getCard_number(), position);
                     }
 
                     @Override
@@ -256,15 +256,18 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
         myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot personnelStore : dataSnapshot.getChildren()) {
-                    Personnel personnel = personnelStore.getValue(Personnel.class);
-                    if (info.equals(personnel.getInfo())) {
-                        String key = personnelStore.getKey();
 
-                        mDatabaseRef.child("personnel_store").child(key).child("id_number").setValue(idNumber.toLowerCase());
-                        incrementVersion();
-                        break;
+                if(dataSnapshot.exists()) {
+                    for (DataSnapshot personnelStore : dataSnapshot.getChildren()) {
+                        Personnel personnel = personnelStore.getValue(Personnel.class);
+                        if (info.equals(personnel.getInfo())) {
+                            String key = personnelStore.getKey();
 
+                            mDatabaseRef.child("personnel_store").child(key).child("id_number").setValue(idNumber.toLowerCase());
+                            incrementVersion();
+                            break;
+
+                        }
                     }
                 }
             }
@@ -285,17 +288,20 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
         myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot personnelStore : dataSnapshot.getChildren()) {
-                    Personnel personnel = personnelStore.getValue(Personnel.class);
-                    if (info.equals(personnel.getInfo())) {
-                        String key = personnelStore.getKey();
 
-                        mDatabaseRef.child("personnel_store").child(key).removeValue();
-                        incrementVersion();
-                        deletedPersonnel = personnel;
-                        deletedKey = key;
-                        break;
+                if(dataSnapshot.exists()) {
+                    for (DataSnapshot personnelStore : dataSnapshot.getChildren()) {
+                        Personnel personnel = personnelStore.getValue(Personnel.class);
+                        if (info.equals(personnel.getInfo())) {
+                            String key = personnelStore.getKey();
 
+                            mDatabaseRef.child("personnel_store").child(key).removeValue();
+                            incrementVersion();
+                            deletedPersonnel = personnel;
+                            deletedKey = key;
+                            break;
+
+                        }
                     }
                 }
             }
@@ -305,7 +311,6 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
 
             }
         });
-
 
         Snackbar snackbar = Snackbar.make(relativeLayout, "Өшірілді: " + info, Snackbar.LENGTH_LONG);
         snackbar.setAction("Қайтару", new View.OnClickListener() {

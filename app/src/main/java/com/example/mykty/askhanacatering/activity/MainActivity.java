@@ -15,6 +15,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -22,6 +23,7 @@ import com.example.mykty.askhanacatering.R;
 import com.example.mykty.askhanacatering.database.StoreDatabase;
 import com.example.mykty.askhanacatering.fragments.CollegeListFragment;
 import com.example.mykty.askhanacatering.fragments.DayliReportFragment;
+import com.example.mykty.askhanacatering.fragments.LyceumListFragment;
 import com.example.mykty.askhanacatering.fragments.OrderFragment;
 import com.example.mykty.askhanacatering.fragments.PersonnelListFragment;
 import com.example.mykty.askhanacatering.fragments.TodayFragment;
@@ -35,12 +37,13 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_CARD_NUMBER;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_FKEY;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_GROUP;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_ID_NUMBER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_INFO;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_LYCEUM_VER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_PHOTO;
-import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_Q_ID;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_QR_CODE;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_STUDENTS_VER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_COLLEGE_STUDENTS;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_LYCEUM_STUDENTS;
@@ -57,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     OrderFragment orderFragment;
     DayliReportFragment dayliReportFragment;
     CollegeListFragment collegeListFragment;
+    LyceumListFragment lyceumListFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        navigationView.getMenu().getItem(3).setChecked(true);
+//        navigationView.getMenu().getItem(3).setChecked(true);
 
         FirebaseApp.initializeApp(this);
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -85,13 +89,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             checkLyceumVersion();
 
         }
+
         todayFragment = new TodayFragment();
         personnelListFragment = new PersonnelListFragment();
         orderFragment = new OrderFragment();
         dayliReportFragment = new DayliReportFragment();
         collegeListFragment = new CollegeListFragment();
-        
-        changeFragment(collegeListFragment);
+        lyceumListFragment = new LyceumListFragment();
+
+        changeFragment(todayFragment);
     }
 
     public void checkCollegeVersion(){
@@ -100,12 +106,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                String newVersion = dataSnapshot.getValue().toString();
-                if (!getCollegeStudentCurVer().equals(newVersion)) {
-                    updateCollegeStudentCurrentVersion(newVersion);
-                    getCollegeStudents();
+                if(dataSnapshot.exists()) {
+                    String newVersion = dataSnapshot.getValue().toString();
+                    if (!getCollegeStudentCurVer().equals(newVersion)) {
+                        updateCollegeStudentCurrentVersion(newVersion);
+                        getCollegeStudents();
 
-                    //Toast.makeText(MainActivity.this, "Колледж студенттері туралы ақпарат жаңаланды!", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(MainActivity.this, "Колледж студенттері туралы ақпарат жаңаланды!", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
@@ -118,16 +126,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void checkLyceumVersion(){
         Query myTopPostsQuery = mDatabase.child("lyceum_student_list_ver");
-        myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+        myTopPostsQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                String newVersion = dataSnapshot.getValue().toString();
-                if (!getLyceumStudentCurVer().equals(newVersion)) {
-                    updateLyceumStudentCurrentVersion(newVersion);
-                    getLyceumStudents();
+                if(dataSnapshot.exists()) {
+                    String newVersion = dataSnapshot.getValue().toString();
+                    if (!getLyceumStudentCurVer().equals(newVersion)) {
+                        updateLyceumStudentCurrentVersion(newVersion);
+                        getLyceumStudents();
 
-                    //Toast.makeText(MainActivity.this, "Лицей студенттері туралы ақпарат жаңаланды!", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(MainActivity.this, "Лицей студенттері туралы ақпарат жаңаланды!", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
@@ -145,24 +155,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         studentsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot groups: dataSnapshot.getChildren()) {
 
-                    String group = groups.getKey();
-                    for(DataSnapshot student: groups.getChildren()){
-                        Student student1 = student.getValue(Student.class);
+                if(dataSnapshot.exists()) {
+                    for (DataSnapshot groups : dataSnapshot.getChildren()) {
 
-                        ContentValues sValues = new ContentValues();
-                        sValues.put(COLUMN_Q_ID, student1.getQr_code());
-                        sValues.put(COLUMN_INFO, student1.getName());
-                        sValues.put(COLUMN_ID_NUMBER, student1.getId_number());
-                        sValues.put(COLUMN_CARD_NUMBER, student1.getCard_number());
-                        sValues.put(COLUMN_GROUP, group);
-                        sValues.put(COLUMN_PHOTO, student1.getPhoto());
+                        String group = groups.getKey();
+                        for (DataSnapshot student : groups.getChildren()) {
+                            Student student1 = student.getValue(Student.class);
 
-                        sqdb.insert(TABLE_COLLEGE_STUDENTS, null, sValues);
+                            ContentValues sValues = new ContentValues();
+                            sValues.put(COLUMN_FKEY, student.getKey());
+                            sValues.put(COLUMN_QR_CODE, student1.getQr_code());
+                            sValues.put(COLUMN_INFO, student1.getName());
+                            sValues.put(COLUMN_ID_NUMBER, student1.getId_number());
+                            sValues.put(COLUMN_CARD_NUMBER, student1.getCard_number());
+                            sValues.put(COLUMN_GROUP, group);
+                            sValues.put(COLUMN_PHOTO, student1.getPhoto());
+
+                            sqdb.insert(TABLE_COLLEGE_STUDENTS, null, sValues);
+
+                        }
 
                     }
-
+                    collegeListFragment.getStudents();
+                    collegeListFragment.modifyAdapter();
                 }
             }
 
@@ -173,32 +189,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
+
     public void getLyceumStudents(){
         storeDb.cleanLyceumStudentsTable(sqdb);
-
-        System.out.println("getLyceumStudents: ");
         studentsQuery = mDatabase.child("classes").orderByKey();
         studentsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot classes: dataSnapshot.getChildren()) {
 
-                    String lclass = classes.getKey();
-                    for(DataSnapshot student: classes.getChildren()){
-                        Student student1 = student.getValue(Student.class);
+                if(dataSnapshot.exists()) {
+                    for (DataSnapshot classes : dataSnapshot.getChildren()) {
 
-                        ContentValues sValues = new ContentValues();
-                        sValues.put(COLUMN_INFO, student1.getName());
-                        sValues.put(COLUMN_ID_NUMBER, student1.getId_number());
-                        sValues.put(COLUMN_CARD_NUMBER, student1.getCard_number());
-                        sValues.put(COLUMN_PHOTO, student1.getPhoto());
-                        sValues.put(COLUMN_Q_ID, student1.getQr_code());
-                        sValues.put(COLUMN_GROUP, lclass);
+                        String lclass = classes.getKey();
+                        for (DataSnapshot student : classes.getChildren()) {
+                            Student student1 = student.getValue(Student.class);
 
-                        sqdb.insert(TABLE_LYCEUM_STUDENTS, null, sValues);
+                            ContentValues sValues = new ContentValues();
+                            sValues.put(COLUMN_INFO, student1.getName());
+                            sValues.put(COLUMN_ID_NUMBER, student1.getId_number());
+                            sValues.put(COLUMN_CARD_NUMBER, student1.getCard_number());
+                            sValues.put(COLUMN_PHOTO, student1.getPhoto());
+                            sValues.put(COLUMN_QR_CODE, student1.getQr_code());
+                            sValues.put(COLUMN_GROUP, lclass);
+
+                            sqdb.insert(TABLE_LYCEUM_STUDENTS, null, sValues);
+
+                        }
 
                     }
-
                 }
             }
 
@@ -293,6 +311,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         }else if (id == R.id.nav_college) {
             changeFragment(collegeListFragment);
+
+        }else if (id == R.id.nav_lyceum) {
+            changeFragment(lyceumListFragment);
 
         } else if (id == R.id.nav_orders) {
             changeFragment(orderFragment);

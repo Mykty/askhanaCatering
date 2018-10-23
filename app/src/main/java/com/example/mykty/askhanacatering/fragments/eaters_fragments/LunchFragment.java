@@ -6,24 +6,20 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mykty.askhanacatering.R;
-import com.example.mykty.askhanacatering.activity.CollegeStudentCab;
-import com.example.mykty.askhanacatering.module.GroupDataItem;
+import com.example.mykty.askhanacatering.activity.StudentCabinet;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.timessquare.CalendarPickerView;
 
@@ -32,11 +28,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import sun.bob.mcalendarview.CellConfig;
-import sun.bob.mcalendarview.MCalendarView;
 import sun.bob.mcalendarview.MarkStyle;
 import sun.bob.mcalendarview.listeners.OnDateClickListener;
 import sun.bob.mcalendarview.listeners.OnExpDateClickListener;
@@ -45,7 +39,6 @@ import sun.bob.mcalendarview.views.ExpCalendarView;
 import sun.bob.mcalendarview.views.WeekColumnView;
 import sun.bob.mcalendarview.vo.DateData;
 
-import static com.squareup.timessquare.CalendarPickerView.SelectionMode.MULTIPLE;
 import static com.squareup.timessquare.CalendarPickerView.SelectionMode.SINGLE;
 
 public class LunchFragment extends Fragment implements View.OnClickListener {
@@ -60,7 +53,7 @@ public class LunchFragment extends Fragment implements View.OnClickListener {
     private DateData selectedDate;
     WeekColumnView weekColumnView;
     private boolean ifExpand = false;
-    String idNumber;
+    String idNumber, type;
     int tYear, tMonth, tDay;
     int countDaysLeft = 0;
     Calendar calendar;
@@ -93,10 +86,11 @@ public class LunchFragment extends Fragment implements View.OnClickListener {
         YearMonthTv.setText(monthName + " " + Calendar.getInstance().get(Calendar.YEAR));
 
         expCalendarView.unMarkDates();
-        idNumber = ((CollegeStudentCab) getActivity()).getIdNumber();
+        idNumber = ((StudentCabinet) getActivity()).getIdNumber();
+        type = ((StudentCabinet) getActivity()).getType();
 
         mDatabaseRef = FirebaseDatabase.getInstance().getReference();
-        mDatabaseRef = mDatabaseRef.child("payed").child("college").child(idNumber).child("lunch");
+        mDatabaseRef = mDatabaseRef.child("payed").child(type).child(idNumber).child("lunch");
 
         dateF = new SimpleDateFormat("dd_MM_yyyy");
 
@@ -261,7 +255,7 @@ public class LunchFragment extends Fragment implements View.OnClickListener {
         }
 
 //        Log.i("info","marked dates: "+markedDatesStore);
-        textViewDayLeft.setText(String.format("%s %s %s",getResources().getString(R.string.daysLeft), countDaysLeft, getResources().getString(R.string.day)));
+        if(isAdded()) textViewDayLeft.setText(String.format("%s %s %s",getResources().getString(R.string.daysLeft), countDaysLeft, getResources().getString(R.string.day)));
     }
 
     public void travelToToday() {

@@ -76,43 +76,49 @@ public class StudentListFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                breakfastCount = 0; lunchCount = 0; dinnerCount = 0;
-                breakfastCount2 = 0; lunchCount2 = 0; dinnerCount2 = 0;
+                if(dataSnapshot.exists()) {
+                    breakfastCount = 0;
+                    lunchCount = 0;
+                    dinnerCount = 0;
+                    breakfastCount2 = 0;
+                    lunchCount2 = 0;
+                    dinnerCount2 = 0;
 
-                for (DataSnapshot daysSnap : dataSnapshot.getChildren()) {
+                    for (DataSnapshot daysSnap : dataSnapshot.getChildren()) {
 
-                    for (DataSnapshot foodTime : daysSnap.getChildren()){
+                        for (DataSnapshot foodTime : daysSnap.getChildren()) {
 
-                        if(daysSnap.getKey().equals("breakfast")){
-                            breakfastCount++;
-                            String id_number = foodTime.getKey();
-                            Long value = (Long) daysSnap.child(id_number).getValue();
-                            if(value==1){
-                                breakfastCount2++;
-                                breakfastList.add(id_number);
+                            if (daysSnap.getKey().equals("breakfast")) {
+                                breakfastCount++;
+                                String id_number = foodTime.getKey();
+                                Long value = (Long) daysSnap.child(id_number).getValue();
+                                if (value == 1) {
+                                    breakfastCount2++;
+                                    breakfastList.add(id_number);
+                                }
+                            } else if (daysSnap.getKey().equals("lunch")) {
+                                lunchCount++;
+                                String id_number = foodTime.getKey();
+                                Long value = (Long) daysSnap.child(id_number).getValue();
+                                if (value == 1) {
+                                    lunchCount2++;
+                                    lunchList.add(id_number);
+                                }
+                            } else if (daysSnap.getKey().equals("dinner")) {
+                                dinnerCount++;
+                                String id_number = foodTime.getKey();
+                                Long value = (Long) daysSnap.child(id_number).getValue();
+                                if (value == 1) {
+                                    dinnerCount2++;
+                                    dinnerList.add(id_number);
+                                }
                             }
-                        }else if(daysSnap.getKey().equals("lunch")){
-                            lunchCount++;
-                            String id_number = foodTime.getKey();
-                            Long value = (Long) daysSnap.child(id_number).getValue();
-                            if(value==1){
-                                lunchCount2++;
-                                lunchList.add(id_number);
-                            }
-                        }else if(daysSnap.getKey().equals("dinner")){
-                            dinnerCount++;
-                            String id_number = foodTime.getKey();
-                            Long value = (Long) daysSnap.child(id_number).getValue();
-                            if(value==1){
-                                dinnerCount2++;
-                                dinnerList.add(id_number);
-                            }
+
+
                         }
-
-
                     }
+                    updateViews();
                 }
-                updateViews();
             }
 
             @Override
@@ -184,11 +190,11 @@ public class StudentListFragment extends Fragment {
 
     public void manageDate() {
         dateF = new SimpleDateFormat("EEEE, dd_MM_yyyy");
-        dateFr = new SimpleDateFormat("dd_MM");//2001.07.04
+        dateFr = new SimpleDateFormat("dd_MM_yyyy");//2001.07.04
         date = dateF.format(Calendar.getInstance().getTime());
 
         firebaseDate = dateFr.format(Calendar.getInstance().getTime());
-        firebaseDate = "23_04";
+        //firebaseDate = "23_04";
 
         tvDate.setText(date.replace('_', '.'));
     }

@@ -1,15 +1,19 @@
 package com.example.mykty.askhanacatering.fragments.main_tabs_fragments;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,10 +31,12 @@ import android.widget.Toast;
 import com.example.mykty.askhanacatering.R;
 import com.example.mykty.askhanacatering.activity.EnterNewEaterActivity;
 import com.example.mykty.askhanacatering.activity.ReportListActivity;
+import com.example.mykty.askhanacatering.activity.ScannerActivity;
 import com.example.mykty.askhanacatering.adapter.PMenuListAdapter;
 import com.example.mykty.askhanacatering.database.StoreDatabase;
 import com.example.mykty.askhanacatering.module.RecyclerItemClickListener;
 import com.example.mykty.askhanacatering.module.PMenu;
+import com.example.mykty.askhanacatering.module.Student;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -58,15 +64,17 @@ public class CollegeFragment extends Fragment {
     private static ArrayList<PMenu> menu;
     private static RecyclerView.Adapter adapter;
     int breakfastCount, lunchCount, dinnerCount;
-    int breakfastCount2, lunchCount2, dinnerCount2;
     ArrayList<String> breakfastList;
     ArrayList<String> lunchList;
     ArrayList<String> dinnerList;
     PMenu breakfastMenu;
     PMenu dinnerMenu;
     PMenu lunchMenu;
-    Dialog addNewGuestDialog;
+    Dialog buyFoodDialog;
     String mealType[] = {"breakfast", "lunch", "dinner"};
+    int collegeBreakfastEatersInt, collegeLunchEatersInt, collegeDinnerEatersInt;
+    FloatingActionButton buyFoodBtn;
+    Student student;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,78 +85,23 @@ public class CollegeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_college, container, false);
-        tvDate = view.findViewById(R.id.textView2);
+        tvDate = view.findViewById(R.id.textViewTotal);
+
         manageDate();
         setupViews();
         refreshDayCount();
+        collegeEatersCount();
+
         return view;
     }
 
-    public void refreshDayCount() {
-        mDatabaseRef.child("days").child("college").child(firebaseDate).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                breakfastCount = 0; lunchCount = 0; dinnerCount = 0;
-                breakfastCount2 = 0; lunchCount2 = 0; dinnerCount2 = 0;
-
-                for (DataSnapshot daysSnap : dataSnapshot.getChildren()) {
-
-                    for (DataSnapshot foodTime : daysSnap.getChildren()){
-
-                        if(daysSnap.getKey().equals("breakfast")){
-                            breakfastCount++;
-                            String id_number = foodTime.getKey();
-                            Long value = (Long) daysSnap.child(id_number).getValue();
-                            if(value==1){
-                                breakfastCount2++;
-                                breakfastList.add(id_number);
-                            }
-                        }else if(daysSnap.getKey().equals("lunch")){
-                            lunchCount++;
-                            String id_number = foodTime.getKey();
-                            Long value = (Long) daysSnap.child(id_number).getValue();
-                            if(value==1){
-                                lunchCount2++;
-                                lunchList.add(id_number);
-                            }
-                        }else if(daysSnap.getKey().equals("dinner")){
-                            dinnerCount++;
-                            String id_number = foodTime.getKey();
-                            Long value = (Long) daysSnap.child(id_number).getValue();
-                            if(value==1){
-                                dinnerCount2++;
-                                dinnerList.add(id_number);
-                            }
-                        }
-
-
-                    }
-                }
-                updateViews();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    public void updateViews() {
-        breakfastMenu.setCount(breakfastCount2+" / "+breakfastCount);
-        lunchMenu.setCount(lunchCount2+" / "+lunchCount);
-        dinnerMenu.setCount(dinnerCount2+" / "+dinnerCount);
-
-        adapter.notifyDataSetChanged();
-    }
-
     public void setupViews() {
-        recyclerView = view.findViewById(R.id.my_recycler_view);
+        recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
 
         storeDb = new StoreDatabase(getActivity());
         sqdb = storeDb.getWritableDatabase();
+        buyFoodBtn = view.findViewById(R.id.fab_guest);
 
         FirebaseApp.initializeApp(getActivity());
         mDatabaseRef = FirebaseDatabase.getInstance().getReference();
@@ -181,16 +134,20 @@ public class CollegeFragment extends Fragment {
                     public void onItemClick(View view, final int position) {
                         Intent intent = new Intent(getActivity(), ReportListActivity.class);
                         intent.putExtra("type", "college");
+                        intent.putExtra("firebaseDate", "firebaseDate");
 
-                        if(position==0 && breakfastList.size()!=0 ){
+                        if (position == 0 && breakfastList.size() != 0) {
+                            intent.putExtra("f_time", "breakfast");
                             intent.putExtra("list", breakfastList);
                             startActivity(intent);
 
-                        }else if(position==1 && lunchList.size()!=0 ){
+                        } else if (position == 1 && lunchList.size() != 0) {
+                            intent.putExtra("f_time", "lunch");
                             intent.putExtra("list", lunchList);
                             startActivity(intent);
 
-                        }else if(position==2 && dinnerList.size()!=0 ){
+                        } else if (position == 2 && dinnerList.size() != 0) {
+                            intent.putExtra("f_time", "dinner");
                             intent.putExtra("list", dinnerList);
                             startActivity(intent);
                         }
@@ -204,35 +161,136 @@ public class CollegeFragment extends Fragment {
         );
 
         createGuestDialog();
-        FloatingActionButton fabNewEater = view.findViewById(R.id.fab_guest);
-
-        fabNewEater.setOnClickListener(new View.OnClickListener() {
+        buyFoodBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                buyFoodDialog.show();
+            }
+        });
+    }
 
-                startActivity(new Intent(getActivity(), EnterNewEaterActivity.class));
+    public void refreshDayCount() {
+        mDatabaseRef.child("days").child("college").child(firebaseDate).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if(dataSnapshot.exists()) {
+                    breakfastCount = 0;
+                    lunchCount = 0;
+                    dinnerCount = 0;
+
+                    breakfastList.clear();
+                    lunchList.clear();
+                    dinnerList.clear();
+
+                    for (DataSnapshot daysSnap : dataSnapshot.getChildren()) {
+                        for (DataSnapshot foodTime : daysSnap.getChildren()) {
+
+                            if (daysSnap.getKey().equals("breakfast")) {
+                                breakfastCount++;
+                                breakfastList.add(foodTime.getKey());
+
+                            } else if (daysSnap.getKey().equals("lunch")) {
+                                lunchCount++;
+                                lunchList.add(foodTime.getKey());
+
+                            } else if (daysSnap.getKey().equals("dinner")) {
+                                dinnerCount++;
+                                dinnerList.add(foodTime.getKey());
+                            }
+                        }
+                    }
+                    updateViews();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
             }
         });
     }
 
-    EditText pInfo, pIdNumber;
+    public void collegeEatersCount() {
+        mDatabaseRef.child("f_time").child("breakfast").child("college").child(firebaseDate).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    collegeBreakfastEatersInt = (int) dataSnapshot.getChildrenCount();
+                } else {
+                    collegeBreakfastEatersInt = 0;
+                }
+
+                updateViews();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        mDatabaseRef.child("f_time").child("lunch").child("college").child(firebaseDate).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    collegeLunchEatersInt = (int) dataSnapshot.getChildrenCount();
+                } else {
+                    collegeLunchEatersInt = 0;
+                }
+
+                updateViews();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        mDatabaseRef.child("f_time").child("dinner").child("college").child(firebaseDate).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    collegeDinnerEatersInt = (int) dataSnapshot.getChildrenCount();
+                } else {
+                    collegeDinnerEatersInt = 0;
+                }
+
+                updateViews();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void updateViews() {
+        breakfastMenu.setCount(breakfastCount + " / " + collegeBreakfastEatersInt);
+        lunchMenu.setCount(lunchCount + " / " + collegeLunchEatersInt);
+        dinnerMenu.setCount(dinnerCount + " / " + collegeDinnerEatersInt);
+
+        adapter.notifyDataSetChanged();
+    }
+
+    Button selectStudent, bntOK, btnCancel;
+
     int pos = 1;
 
     public void createGuestDialog() {
-        addNewGuestDialog = new Dialog(getActivity());
-        addNewGuestDialog.setContentView(R.layout.dialog_add_guest);
-        addNewGuestDialog.setTitle("Колледж студент енгізу");
-        TextView today = addNewGuestDialog.findViewById(R.id.textViewToday);
-        Button bntOK = addNewGuestDialog.findViewById(R.id.btnOk);
-        pInfo = addNewGuestDialog.findViewById(R.id.pInfo);
-        pIdNumber = addNewGuestDialog.findViewById(R.id.pIdNumber);
+        buyFoodDialog = new Dialog(getActivity(), R.style.CustomDialog);
+        buyFoodDialog.setContentView(R.layout.dialog_buy_one_day_food);
+        buyFoodDialog.setCanceledOnTouchOutside(false);
+        buyFoodDialog.setTitle("1 күндің тамақ");
+        bntOK = buyFoodDialog.findViewById(R.id.btnOk);
+        btnCancel = buyFoodDialog.findViewById(R.id.btnCancel);
+        selectStudent = buyFoodDialog.findViewById(R.id.selectStudent);
 
         final String[] SPINNERLIST = {"Таңғы ас", "Түскі ас", "Кешкі ас"};
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_dropdown_item_1line, SPINNERLIST);
-        Spinner guestSpinner = addNewGuestDialog.findViewById(R.id.guest_spinner);
+        Spinner guestSpinner = buyFoodDialog.findViewById(R.id.guest_spinner);
 
-        today.setText(date);
         guestSpinner.setAdapter(arrayAdapter);
         guestSpinner.setSelection(1);
 
@@ -248,11 +306,30 @@ public class CollegeFragment extends Fragment {
             }
         });
 
+        selectStudent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent t = new Intent(getActivity(), ScannerActivity.class);
+                startActivityForResult(t, 101);
+            }
+        });
+
         bntOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(findedStudent){
+                    String idNumber = student.getId_number();
+                    String meal = mealType[pos];
 
-                if (pInfo.length() > 0 && pIdNumber.length() > 0) {
+                    mDatabaseRef.child("payed").child("college").child(idNumber).child(meal).child(firebaseDate).setValue(1);
+                    mDatabaseRef.child("f_time").child(meal).child("college").child(firebaseDate).child(idNumber).push().setValue(1);
+                    buyFoodDialog.dismiss();
+                    showSuccessToast(student.getName());
+                }else{
+                    Toast.makeText(getActivity(), getString(R.string.selectStudentMistake), Toast.LENGTH_SHORT).show();
+                }
+
+                /*if (pInfo.length() > 0 && pIdNumber.length() > 0) {
                     String info = pInfo.getText().toString();
                     String idNumber = pIdNumber.getText().toString();
                     String meal = mealType[pos];
@@ -260,7 +337,7 @@ public class CollegeFragment extends Fragment {
 
                     mDatabaseRef.child("days").child("college").child(firebaseDate).child(meal).child(idNumber).setValue(0);
 
-                    addNewGuestDialog.dismiss();
+                    buyFoodDialog.dismiss();
                     showSuccessToast(info);
                     pInfo.setText("");
                     pIdNumber.setText("");
@@ -268,18 +345,46 @@ public class CollegeFragment extends Fragment {
 
                 } else {
                     if (isEmpty(pInfo.getText().toString())) pInfo.setError("Ақпарат толтырылмады");
-                    if (isEmpty(pIdNumber.getText().toString())) pIdNumber.setError("Ақпарат толтырылмады");
+                    if (isEmpty(pIdNumber.getText().toString()))
+                        pIdNumber.setError("Ақпарат толтырылмады");
 
-                }
+                }*/
             }
         });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectStudent.setText(getString(R.string.select));
+                buyFoodDialog.dismiss();
+            }
+        });
+
+    }
+    boolean findedStudent = false;
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 101) {
+            if(resultCode == Activity.RESULT_OK){
+                Bundle bundle = data.getExtras();
+                student = (Student) bundle.getSerializable("findedStudent");
+                selectStudent.setText(student.getName());
+                findedStudent = true;
+
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(getActivity(), "Студент табылған жоқ", Toast.LENGTH_SHORT).show();
+                findedStudent = false;
+            }
+        }
     }
 
-    public void showSuccessToast(String info){
+    public void showSuccessToast(String info) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View toastLayout = inflater.inflate(R.layout.custom_toast, (ViewGroup) view.findViewById(R.id.custom_toast_layout));
         TextView text = toastLayout.findViewById(R.id.custom_toast_message);
-        text.setText(info+" сәтті енгізілді!");
+        text.setText(info + " сәтті енгізілді!");
 
         Toast toast = new Toast(getActivity());
         toast.setDuration(Toast.LENGTH_LONG);
@@ -289,14 +394,12 @@ public class CollegeFragment extends Fragment {
 
     public void manageDate() {
         dateF = new SimpleDateFormat("EEEE, dd.MM.yyyy");
-        dateFr = new SimpleDateFormat("dd_MM");//2001.07.04
+        dateFr = new SimpleDateFormat("dd_MM_yyyy");//2001.07.04
         date = dateF.format(Calendar.getInstance().getTime());
 
         firebaseDate = dateFr.format(Calendar.getInstance().getTime());
-        firebaseDate = "23_04";
 
-        tvDate.setText(date.replace('_', '.'));
-//        tvDate.setText(firebaseDate);
+        tvDate.setText(date);
     }
 
     @Override

@@ -1,27 +1,32 @@
 package com.example.mykty.askhanacatering.adapter;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.mykty.askhanacatering.R;
+import com.example.mykty.askhanacatering.activity.StudentCabinet;
 import com.example.mykty.askhanacatering.module.Personnel;
+import com.example.mykty.askhanacatering.module.Student;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class PersonnelListAdapter extends RecyclerView.Adapter<PersonnelListAdapter.MyViewHolder> {
 
     private ArrayList<Personnel> dataSet;
     Activity activity;
+    HashMap<String, Student> idNumberHashMap;
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
 
@@ -45,6 +50,11 @@ public class PersonnelListAdapter extends RecyclerView.Adapter<PersonnelListAdap
         this.activity = activity;
         this.dataSet = data;
     }
+    public PersonnelListAdapter(Activity activity, ArrayList<Personnel> data, HashMap<String, Student> idNumberHashMap) {
+        this.activity = activity;
+        this.dataSet = data;
+        this.idNumberHashMap = idNumberHashMap;
+    }
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -57,10 +67,13 @@ public class PersonnelListAdapter extends RecyclerView.Adapter<PersonnelListAdap
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
-        Personnel item = dataSet.get(position);
+        final Personnel item = dataSet.get(position);
         holder.perName.setText(item.getInfo());
 
         if (item.getType().equals("others")) {
+
+            holder.perName.setText(holder.perName.getText()+"\n"+item.getPhoto());
+            /*
             holder.linearLayout.removeAllViews();
 
             holder.perName = new TextView(activity);
@@ -84,12 +97,29 @@ public class PersonnelListAdapter extends RecyclerView.Adapter<PersonnelListAdap
 
             holder.linearLayout.addView(holder.perName);
             holder.linearLayout.addView(holder.otherDesc);
+            */
         }
 
         Glide.with(activity)
                 .load(item.getPhoto())
                 .placeholder(R.drawable.s_icon).fitCenter()
                 .into(holder.perImage);
+
+        holder.linearLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(idNumberHashMap != null) {
+                    String clickedSName = item.getInfo().toString();
+
+                    Intent intent = new Intent(activity, StudentCabinet.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("type", "college");
+                    bundle.putSerializable("sClass", idNumberHashMap.get(clickedSName));
+                    intent.putExtras(bundle);
+                    activity.startActivity(intent);
+                }
+            }
+        });
 
     }
 

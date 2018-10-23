@@ -56,6 +56,7 @@ public class LyceumFragment extends Fragment {
     private static RecyclerView.Adapter adapter;
     ArrayList<String> breakfastList, lunchList, dinnerList, poldnik1List, poldnik2List;
 
+    int lyceumBreakfastEatersInt, lyceumDinnerEatersInt;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,14 +66,14 @@ public class LyceumFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_lyceum, container, false);
-
         tvDate = view.findViewById(R.id.textView2);
+
         manageDate();
         setupViews();
         calcTotalLyceumStudents();
         refreshDayCount();
+        collegeEatersCount();
 
-        System.out.println("LyceumFragment");
         return view;
     }
 
@@ -81,54 +82,45 @@ public class LyceumFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                breakfastCount = 0;
-                lunchCount = 0;
-                dinnerCount = 0;
-                breakfastCount2 = 0;
-                dinnerCount2 = 0;
-                poldnik1Count = 0;
-                poldnik2Count = 0;
+                if(dataSnapshot.exists()) {
+                    breakfastCount = 0;
+                    lunchCount = 0;
+                    dinnerCount = 0;
+                    poldnik1Count = 0;
+                    poldnik2Count = 0;
 
-                for (DataSnapshot daysSnap : dataSnapshot.getChildren()) {
+                    breakfastList.clear();
+                    lunchList.clear();
+                    dinnerList.clear();
+                    poldnik2List.clear();
+                    poldnik1List.clear();
 
-                    for (DataSnapshot foodTime : daysSnap.getChildren()) {
+                    for (DataSnapshot daysSnap : dataSnapshot.getChildren()) {
 
-                        if (daysSnap.getKey().equals("breakfast")) {
-                            breakfastCount++;
-                            String id_number = foodTime.getKey();
-                            Long value = (Long) daysSnap.child(id_number).getValue();
-                            if (value == 1) {
-                                breakfastCount2++;
-                                breakfastList.add(id_number);
+                        for (DataSnapshot foodTime : daysSnap.getChildren()) {
+
+                            if (daysSnap.getKey().equals("breakfast")) {
+                                breakfastCount++;
+                                breakfastList.add(foodTime.getKey());
+                            } else if (daysSnap.getKey().equals("lunch")) {
+                                lunchCount++;
+                                lunchList.add(foodTime.getKey());
+                            } else if (daysSnap.getKey().equals("poldnik1")) {
+                                poldnik1Count++;
+                                poldnik1List.add(foodTime.getKey());
+                            } else if (daysSnap.getKey().equals("poldnik2")) {
+                                poldnik2Count++;
+                                poldnik2List.add(foodTime.getKey());
+                            } else if (daysSnap.getKey().equals("dinner")) {
+                                dinnerCount++;
+                                dinnerList.add(foodTime.getKey());
                             }
-                        } else if (daysSnap.getKey().equals("lunch")) {
 
-                            String id_number = foodTime.getKey();
-                            lunchCount++;
-                            lunchList.add(id_number);
 
-                        } else if (daysSnap.getKey().equals("poldnik1")) {
-                            poldnik1Count++;
-                            String id_number = foodTime.getKey();
-                            poldnik1List.add(id_number);
-                        } else if (daysSnap.getKey().equals("poldnik2")) {
-                            poldnik2Count++;
-                            String id_number = foodTime.getKey();
-                            poldnik2List.add(id_number);
-                        } else if (daysSnap.getKey().equals("dinner")) {
-                            dinnerCount++;
-                            String id_number = foodTime.getKey();
-                            Long value = (Long) daysSnap.child(id_number).getValue();
-                            if (value == 1) {
-                                dinnerCount2++;
-                                dinnerList.add(id_number);
-                            }
                         }
-
-
                     }
+                    updateViews();
                 }
-                updateViews();
             }
 
             @Override
@@ -138,21 +130,58 @@ public class LyceumFragment extends Fragment {
         });
     }
 
+    public void collegeEatersCount() {
+        mDatabaseRef.child("f_time").child("breakfast").child("lyceum").child(firebaseDate).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    lyceumBreakfastEatersInt = (int) dataSnapshot.getChildrenCount();
+                } else {
+                    lyceumBreakfastEatersInt = 0;
+                }
+
+                updateViews();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        mDatabaseRef.child("f_time").child("dinner").child("lyceum").child(firebaseDate).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    lyceumDinnerEatersInt = (int) dataSnapshot.getChildrenCount();
+                } else {
+                    lyceumDinnerEatersInt = 0;
+                }
+
+                updateViews();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
     public void updateViews() {
-        breakfastMenu.setCount(breakfastCount2 + " / " + breakfastCount);
+        breakfastMenu.setCount(breakfastCount + " / " + lyceumBreakfastEatersInt);
 
         lunchMenu.setCount(lunchCount + " / " + totalLyceumStuddents);
         poldnik1.setCount(poldnik1Count + " / " + totalLyceumStuddents);
         poldnik2.setCount(poldnik2Count + " / " + totalLyceumStuddents);
 
-        dinnerMenu.setCount(dinnerCount2 + " / " + dinnerCount);
+        dinnerMenu.setCount(dinnerCount + " / " + lyceumDinnerEatersInt);
 
         adapter.notifyDataSetChanged();
     }
 
     public void calcTotalLyceumStudents() {
 
-        Cursor res = sqdb.rawQuery("SELECT "+COLUMN_INFO+" FROM "+TABLE_LYCEUM_STUDENTS, null);
+        Cursor res = sqdb.rawQuery("SELECT " + COLUMN_INFO + " FROM " + TABLE_LYCEUM_STUDENTS, null);
 
         totalLyceumStuddents = res.getCount();
     }
@@ -176,9 +205,9 @@ public class LyceumFragment extends Fragment {
         menu = new ArrayList();
         breakfastMenu = new PMenu("Таңғы ас", R.drawable.menu1, "0");
         poldnik1 = new PMenu("Полдник 1", R.drawable.menu3, "0");
-        lunchMenu = new PMenu("Түскі ас", R.drawable.menu4, "0");
+        lunchMenu = new PMenu("Түскі ас", R.drawable.menu3, "0");
         poldnik2 = new PMenu("Полдник 2", R.drawable.menu3, "0");
-        dinnerMenu = new PMenu("Кешкі ас", R.drawable.menu4, "0");
+        dinnerMenu = new PMenu("Кешкі ас", R.drawable.menu2, "0");
 
         menu.add(breakfastMenu);
         menu.add(poldnik1);
@@ -204,28 +233,33 @@ public class LyceumFragment extends Fragment {
                         Intent intent = new Intent(getActivity(), ReportListActivity.class);
                         intent.putExtra("type", "lyceum");
 
-                        if(position==0 && breakfastList.size()!=0 ){
+                        if (position == 0 && breakfastList.size() != 0) {
 
+                            intent.putExtra("f_time", "breakfast");
                             intent.putExtra("list", breakfastList);
 
                             startActivity(intent);
-                        }else if(position==1 && poldnik1List.size()!=0 ){
+                        } else if (position == 1 && poldnik1List.size() != 0) {
 
+                            intent.putExtra("f_time", "poldnik1");
                             intent.putExtra("list", poldnik1List);
 
                             startActivity(intent);
-                        }else if(position==2 && lunchList.size()!=0 ){
+                        } else if (position == 2 && lunchList.size() != 0) {
 
+                            intent.putExtra("f_time", "lunch");
                             intent.putExtra("list", lunchList);
 
                             startActivity(intent);
-                        }else if(position==3 && poldnik2List.size()!=0 ){
+                        } else if (position == 3 && poldnik2List.size() != 0) {
 
+                            intent.putExtra("f_time", "poldnik2");
                             intent.putExtra("list", poldnik2List);
 
                             startActivity(intent);
-                        }else if(position==4 && dinnerList.size()!=0 ){
+                        } else if (position == 4 && dinnerList.size() != 0) {
 
+                            intent.putExtra("f_time", "dinner");
                             intent.putExtra("list", dinnerList);
 
                             startActivity(intent);
@@ -241,15 +275,12 @@ public class LyceumFragment extends Fragment {
     }
 
     public void manageDate() {
-        dateF = new SimpleDateFormat("EEEE, dd_MM_yyyy");
-        dateFr = new SimpleDateFormat("dd_MM");//2001.07.04
+        dateF = new SimpleDateFormat("EEEE, dd.MM.yyyy");
+        dateFr = new SimpleDateFormat("dd_MM_yyyy");//2001.07.04
         date = dateF.format(Calendar.getInstance().getTime());
 
         firebaseDate = dateFr.format(Calendar.getInstance().getTime());
-        firebaseDate = "23_04";
-
-        tvDate.setText(date.replace('_', '.'));
-//        tvDate.setText(firebaseDate);
+        tvDate.setText(date);
     }
 
     @Override

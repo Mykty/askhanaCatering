@@ -8,9 +8,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class StoreDatabase extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "askhana_catering.db";
-    private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 11;
 
     public static final String TABLE_PERSONNEL = "personnel_store";
+    public static final String COLUMN_FKEY= "fkey";
     public static final String COLUMN_INFO = "info";
     public static final String COLUMN_ID_NUMBER = "id_number";
     public static final String COLUMN_CARD_NUMBER = "card_number";
@@ -19,7 +20,7 @@ public class StoreDatabase extends SQLiteOpenHelper {
 
     public static final String TABLE_COLLEGE_STUDENTS = "college_students_list";
     public static final String TABLE_LYCEUM_STUDENTS = "lyceum_students_list";
-    public static final String COLUMN_Q_ID = "qr_code";
+    public static final String COLUMN_QR_CODE = "qr_code";
     public static final String COLUMN_GROUP = "s_group";
 
     public static final String TABLE_PERSONNEL_COUNT = "personnel_store_count";
@@ -55,7 +56,8 @@ public class StoreDatabase extends SQLiteOpenHelper {
                 COLUMN_TYPE + " TEXT )");
 
         db.execSQL("CREATE TABLE " + TABLE_COLLEGE_STUDENTS + "(" +
-                COLUMN_Q_ID + " TEXT, " +
+                COLUMN_FKEY + " TEXT, " +
+                COLUMN_QR_CODE + " TEXT, " +
                 COLUMN_INFO + " TEXT, " +
                 COLUMN_ID_NUMBER + " TEXT, " +
                 COLUMN_CARD_NUMBER + " TEXT, " +
@@ -63,7 +65,7 @@ public class StoreDatabase extends SQLiteOpenHelper {
                 COLUMN_PHOTO  + " INTEGER )");
 
         db.execSQL("CREATE TABLE " + TABLE_LYCEUM_STUDENTS + "(" +
-                COLUMN_Q_ID + " TEXT, " +
+                COLUMN_QR_CODE + " TEXT, " +
                 COLUMN_INFO + " TEXT, " +
                 COLUMN_ID_NUMBER + " TEXT, " +
                 COLUMN_CARD_NUMBER + " TEXT, " +

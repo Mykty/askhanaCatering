@@ -77,14 +77,17 @@ public class OrderFragment extends Fragment implements View.OnClickListener, Vie
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                orderList.clear();
 
-                for (DataSnapshot orderSnapshot : dataSnapshot.getChildren()) {
-                    Order order = orderSnapshot.getValue(Order.class);
-                    orderList.add(order);
+                if(dataSnapshot.exists()) {
+                    orderList.clear();
+
+                    for (DataSnapshot orderSnapshot : dataSnapshot.getChildren()) {
+                        Order order = orderSnapshot.getValue(Order.class);
+                        orderList.add(order);
+                    }
+
+                    orderListAdapter.notifyDataSetChanged();
                 }
-
-                orderListAdapter.notifyDataSetChanged();
             }
 
             @Override

@@ -40,8 +40,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ems="10"
+                    android:singleLine="true"
                     android:hint="жаңа CARD Number енгізіңіз"
-                    android:textSize="10sp" />
+                    android:textSize="20sp" />
 
             </LinearLayout>
 

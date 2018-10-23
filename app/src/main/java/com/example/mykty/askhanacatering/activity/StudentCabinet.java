@@ -1,8 +1,13 @@
 package com.example.mykty.askhanacatering.activity;
 
 import android.app.Dialog;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -11,9 +16,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
@@ -21,19 +30,19 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.mykty.askhanacatering.R;
+import com.example.mykty.askhanacatering.database.StoreDatabase;
 import com.example.mykty.askhanacatering.fragments.eaters_fragments.BreakfastFragment;
 import com.example.mykty.askhanacatering.fragments.eaters_fragments.DinnerFragment;
 import com.example.mykty.askhanacatering.fragments.eaters_fragments.LunchFragment;
-import com.example.mykty.askhanacatering.fragments.report_fragments.LunchReportFragment;
+import com.example.mykty.askhanacatering.module.Personnel;
 import com.example.mykty.askhanacatering.module.Student;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.timessquare.CalendarPickerView;
-
-import org.w3c.dom.Text;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -41,9 +50,14 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_CARD_NUMBER;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_ID_NUMBER;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_INFO;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_COLLEGE_STUDENTS;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL;
 import static com.squareup.timessquare.CalendarPickerView.SelectionMode.MULTIPLE;
 
-public class CollegeStudentCab extends AppCompatActivity implements View.OnClickListener {
+public class StudentCabinet extends AppCompatActivity implements View.OnClickListener {
 
     ImageView teacherPhoto;
     TextView teacherInfo;
@@ -60,15 +74,20 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
     ImageView breakfastDetail, lunchDetail, dinnerDetail;
     TextView foodTitle, oneFoodPrice, allRes;
     String bTitle, lTitle, dTitle;
-    int bPrice = 500, lPrice = 600, dPrice = 650;
+    int bPrice = 550, lPrice = 750, dPrice = 700;
     BreakfastFragment breakfastFragment;
     LunchFragment lunchFragment;
     TextView tvBPrice, tvLPrice, tvDPrice, sumPrice;
     Button btnPay;
-    DatabaseReference mDatabaseRef;
+    DatabaseReference mDatabaseRef, foodDatabaseRef, studentRef ;
     DateFormat dateF;
     String idNumber, imgUrl;
     int bRes = 0, lRes = 0, dRes = 0;
+    String type;
+    int selectedFragment = 0;
+    SQLiteDatabase sqdb;
+    StoreDatabase storeDb;
+    String sCardNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,12 +116,20 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
         sName = student.getName();
         imgUrl = student.getPhoto();
         idNumber = student.getId_number();
+        sCardNumber = student.getCard_number();
+
+        type = bundle.getString("type");
 
         mDatabaseRef = FirebaseDatabase.getInstance().getReference();
-        mDatabaseRef = mDatabaseRef.child("payed").child("college").child(idNumber);
+        studentRef = FirebaseDatabase.getInstance().getReference();
+        foodDatabaseRef = FirebaseDatabase.getInstance().getReference();
+        mDatabaseRef = mDatabaseRef.child("payed").child(type).child(idNumber);
 
         BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        storeDb = new StoreDatabase(this);
+        sqdb = storeDb.getWritableDatabase();
 
         changeUserDesc();
         createDialogs();
@@ -172,15 +199,62 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
 
         btnPay = summaryDialog.findViewById(R.id.btnPay);
         btnPay.setOnClickListener(this);
+
+        checkboxBreakfast.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                checkboxBreakfast.setTextSize(14.0f);
+                checkboxLunch.setTextSize(14.0f);
+                checkboxDinner.setTextSize(14.0f);
+
+                if(isChecked){
+                    checkboxBreakfast.setTextSize(20.0f);
+                }
+            }
+        });
+        checkboxLunch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                checkboxBreakfast.setTextSize(14.0f);
+                checkboxLunch.setTextSize(14.0f);
+                checkboxDinner.setTextSize(14.0f);
+
+                if(isChecked){
+                    checkboxLunch.setTextSize(20.0f);
+                }
+            }
+        });
+        checkboxDinner.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                checkboxBreakfast.setTextSize(14.0f);
+                checkboxLunch.setTextSize(14.0f);
+                checkboxDinner.setTextSize(14.0f);
+
+                if(isChecked){
+                    checkboxDinner.setTextSize(20.0f);
+                }
+            }
+        });
+
     }
 
     public String getIdNumber(){
         return idNumber;
     }
+
+    public String getType(){
+        return type;
+    }
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
+                if(selectedFragment == 0) checkboxBreakfast.setChecked(true);
+                else if(selectedFragment == 1) checkboxLunch.setChecked(true);
+                else if(selectedFragment == 2) checkboxDinner.setChecked(true);
+
                 foodBuyDialog.setTitle(sName);
                 foodBuyDialog.show();
 
@@ -282,6 +356,8 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
                         String cDate = dateF.format(date);
 
                         mDatabaseRef.child("breakfast").child(cDate).setValue(1);
+                        foodDatabaseRef.child("f_time").child("breakfast").child(type).child(cDate).child(idNumber).push().setValue(1);
+
                         Log.i("cal", "Breakfast: "+cDate);
                     }
                 }
@@ -289,6 +365,8 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
                     for(Date date: lDates){
                         String cDate = dateF.format(date);
                         mDatabaseRef.child("lunch").child(cDate).setValue(1);
+                        foodDatabaseRef.child("f_time").child("lunch").child(type).child(cDate).child(idNumber).push().setValue(1);
+
                         Log.i("cal", "Lunch: "+cDate);
                     }
                 }
@@ -296,7 +374,7 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
                     for(Date date: dDates){
                         String cDate = dateF.format(date);
                         mDatabaseRef.child("dinner").child(cDate).setValue(1);
-                        Log.i("cal", "Dinner: "+cDate);
+                        foodDatabaseRef.child("f_time").child("dinner").child(type).child(cDate).child(idNumber).push().setValue(1);
                     }
                 }
                 summaryDialog.dismiss();
@@ -338,6 +416,140 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.options_menu2, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.menu1) {//Өзгерту
+            showDialog(sName, student.getId_number());
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+    TextView oIdNumber;
+
+    public void showDialog(final String tName, final String id_number) {
+
+        final Dialog alert = new Dialog(this, R.style.AlertDialogTheme);
+        alert.setContentView(R.layout.dialog_edit);
+
+        final TextView tvName = alert.findViewById(R.id.textViewName);
+        oIdNumber = alert.findViewById(R.id.oldIdNUmber);
+        final EditText nIdNumber = alert.findViewById(R.id.newIdNUmber);
+
+        Button ok = alert.findViewById(R.id.btnOk);
+        Button cancel = alert.findViewById(R.id.btnCancel);
+        Button del = alert.findViewById(R.id.btnDel);
+
+        tvName.setText(tName);
+        oIdNumber.setText("CARD Number: " + sCardNumber);
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.btnOk:
+                        if (isNetworkAvailable(StudentCabinet.this)) {
+                            updateCardNumber(nIdNumber.getText().toString(), id_number);
+                            Toast.makeText(StudentCabinet.this, tName + " CARD Number өзгерді", Toast.LENGTH_SHORT).show();
+                        }
+
+                        break;
+                    case R.id.btnDel:
+                        if (isNetworkAvailable(StudentCabinet.this)) {
+//                            deleteStudent(tName);
+                        }
+
+                        break;
+
+
+                    case R.id.btnCancel:
+
+                        nIdNumber.setText("");
+                        break;
+                }
+
+                alert.dismiss();
+            }
+        };
+
+        ok.setOnClickListener(listener);
+        cancel.setOnClickListener(listener);
+        del.setOnClickListener(listener);
+
+        alert.show();
+    }
+
+    public void updateCardNumber(final String cardNumber, String id_number) {
+
+//        ContentValues versionValues = new ContentValues();
+//        versionValues.put(COLUMN_CARD_NUMBER, cardNumber.toLowerCase());
+//        sqdb.update(TABLE_COLLEGE_STUDENTS, versionValues, COLUMN_ID_NUMBER + "='" + id_number + "'", null);
+
+        oIdNumber.setText("CARD Number: " + sCardNumber);
+        sCardNumber = cardNumber;
+        studentRef.child("groups").child(student.getGroup()).child(student.getFirebaseKey()).child("card_number").setValue(cardNumber.toLowerCase());
+        incrementVersion();
+    }
+
+    public void deleteStudent(final String info) {
+        sqdb.delete(TABLE_COLLEGE_STUDENTS, COLUMN_INFO + "='" + info + "'", null);
+
+        Query myTopPostsQuery = mDatabaseRef.child("personnel_store");
+        myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot personnelStore : dataSnapshot.getChildren()) {
+                        Personnel personnel = personnelStore.getValue(Personnel.class);
+                        if (info.equals(personnel.getInfo())) {
+                            String key = personnelStore.getKey();
+
+                            mDatabaseRef.child("personnel_store").child(key).removeValue();
+                            incrementVersion();
+                            break;
+
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void incrementVersion() {
+        Query myTopPostsQuery = studentRef.child("college_student_list_ver");
+        myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+                    long version = (long) dataSnapshot.getValue();
+                    version++;
+                    studentRef.child("college_student_list_ver").setValue(version);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -345,12 +557,15 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_home:
+                    selectedFragment = 0;
                     changeFragment(new BreakfastFragment());
                     return true;
                 case R.id.navigation_dashboard:
+                    selectedFragment = 1;
                     changeFragment(new LunchFragment());
                     return true;
                 case R.id.navigation_notifications:
+                    selectedFragment = 2;
                     changeFragment(new DinnerFragment());
                     return true;
             }
@@ -363,5 +578,15 @@ public class CollegeStudentCab extends AppCompatActivity implements View.OnClick
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
 
+    }
+
+    public boolean isNetworkAvailable(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+        return isConnected;
     }
 }

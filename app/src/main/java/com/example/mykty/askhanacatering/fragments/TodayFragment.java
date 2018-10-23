@@ -41,10 +41,11 @@ public class TodayFragment extends Fragment {
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getChildFragmentManager());
-        adapter.addFragment(new PersonnelFragment(), "Персонал");
-        //adapter.addFragment(new CollegeFragment(), "Колледж");
-        //adapter.addFragment(new LyceumFragment(), "Лицей");
+        adapter.addFragment(new PersonnelFragment(), getString(R.string.personnel));
+        adapter.addFragment(new CollegeFragment(), getString(R.string.college));
+        adapter.addFragment(new LyceumFragment(), getString(R.string.lyceum));
 
+        viewPager.setOffscreenPageLimit(3);
         viewPager.setAdapter(adapter);
     }
 }

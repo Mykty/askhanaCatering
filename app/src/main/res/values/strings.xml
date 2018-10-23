@@ -14,14 +14,21 @@
     <string name="title_activity_enter_new_eater">EnterNewEaterActivit</string>
 
     <string name="main_fragment">Бастысы</string>
+    <string name="personnel">Персонал</string>
+    <string name="college">Колледж</string>
+    <string name="lyceum">Лицей</string>
+
     <string name="personnel_list">Персонал тізімі</string>
     <string name="college_list">Колледж тізімі</string>
     <string name="lyceum_list">Лицей тізімі</string>
     <string name="orders">Тапсырыстар</string>
     <string name="report_title">Есептер</string>
     <string name="all_title">Барлығы: </string>
+    <string name="pupil">оқушы</string>
+    <string name="student">студент</string>
     <string name="payment">Төлем </string>
     <string name="enter_new_student">Жаңа студент енгізу</string>
+    <string name="enter_new_pupil">Жаңа оқушы енгізу</string>
 
     <string name="s_info">аты-жөні</string>
     <string name="s_info_mistake">аты-жөні толтырылмады</string>
@@ -29,6 +36,7 @@
     <string name="read_card_number_mistake">card number оқытылмады</string>
     <string name="select_group">Группасын таңдаңыз:</string>
     <string name="select_group_mistake">группа таңдалмады</string>
+    <string name="select_class_mistake">класс таңдалмады</string>
     <string name="photo">Сурет таңдау</string>
     <string name="qr_code_scanner">Qr Code сканнер жасау</string>
     <string name="qr_code_scanner_mistake">Qr Code сканнернер жасалмады</string>
@@ -47,6 +55,7 @@
     <string name="lunchSelected">Бұл күнде түскі ас бар!</string>
     <string name="dinnerSelected">Бұл күнде кешкі ас бар!</string>
     <string name="selectAnotherDay">Басқа күнді таңдаңыз</string>
+    <string name="checkInetConnection">Интернет байланысыңызды тексеріңіз</string>
 
     <string name="oneB">1 таңғы ас:</string>
     <string name="oneL">1 түскі ас:</string>
@@ -57,6 +66,7 @@
     <string name="title_poldnik2">Полдник2</string>
     <string name="title_lunch">Түскі ас</string>
     <string name="title_dinner">Кешкі ас</string>
+
     <string name="delete">өшіру</string>
     <string name="delete2">Өшіру</string>
     <string name="deleted">өшірілді!</string>
@@ -67,6 +77,8 @@
 
     <string name="selectDays">Күндерді таңдаңыз:</string>
     <string name="selectPersons">Адамдарды таңдаңыз:</string>
+    <string name="selectStudent">Студентті таңдаңыз:</string>
+    <string name="selectStudentMistake">студент таңдалған жоқ:</string>
     <string name="selectTime">Тамақ кезеңін таңдаңыз:</string>
     <string name="select">таңдау</string>
     <string name="collectReport">Есеп жинастыру</string>
@@ -109,12 +121,28 @@
         <item>2-01</item>
         <item>2-02</item>
         <item>2-03</item>
+        <item>2-04</item>
         <item>3-01</item>
         <item>3-02</item>
         <item>3-03</item>
         <item>3-04</item>
-        <item>3-09</item>
         <item>4-09</item>
+    </string-array>
+
+    <string-array name="classes">
+        <item>@string/select</item>
+        <item>7 A</item>
+        <item>7 B</item>
+        <item>8 A</item>
+        <item>8 B</item>
+        <item>9 A</item>
+        <item>9 B</item>
+        <item>10 A</item>
+        <item>10 B</item>
+        <item>11 A</item>
+        <item>1 A</item>
+        <item>2 A</item>
+        <item>3 A</item>
     </string-array>
 
     <string-array name="monthStore">

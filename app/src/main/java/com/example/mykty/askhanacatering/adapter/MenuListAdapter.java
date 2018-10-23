@@ -1,4 +1,5 @@
 package com.example.mykty.askhanacatering.adapter;
+
 import android.app.Activity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -9,7 +10,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.mykty.askhanacatering.R;
-import com.example.mykty.askhanacatering.module.Order;
 import com.example.mykty.askhanacatering.module.PMenu;
 
 import java.util.ArrayList;

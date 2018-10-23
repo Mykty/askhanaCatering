@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,20 +58,31 @@ public class BreakfastReportFragment extends Fragment {
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                groupsList.clear();
 
-                for (DataSnapshot organization : dataSnapshot.getChildren()) {
-                    String oName = organization.getKey().toString();
+                if (dataSnapshot.exists()) {
+                    groupsList.clear();
 
-                    maxStore.put(oName, organization.getChildrenCount());
+                    for (DataSnapshot organization : dataSnapshot.getChildren()) {
+                        String organizationName = organization.getKey().toString();
 
-                    for (DataSnapshot days : organization.getChildren()) {
-                        String day = days.getKey().toString();
-                        getReportByDay(oName, day);
+                        maxStore.put(organizationName, organization.getChildrenCount());
+
+                        for (DataSnapshot days : organization.getChildren()) {
+                            String day = days.getKey().toString();
+
+
+                            for (DataSnapshot foodTime : days.getChildren()) {
+
+                            }
+
+//                            getReportByDay(organizationName, day);
+                        }
                     }
+
+                    modifyAdapter();
+
+
                 }
-
-
             }
 
             @Override
@@ -80,22 +92,35 @@ public class BreakfastReportFragment extends Fragment {
         });
     }
 
-    public void getReportByDay(final String oName, final String day) {
-        Query query = mDatabaseRef.child("days").child(oName).child(day).child("breakfast");
+    public void getReportByDay(final String organizationName, final String day) {
+        Query query = mDatabaseRef.child("days").child(organizationName).child(day).child("breakfast");
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    long size = dataSnapshot.getChildrenCount();
 
-                long size = dataSnapshot.getChildrenCount();
+                    if (organizationName.equals("personnel")) personnelDaysR.put(day, size);
+                    else if (organizationName.equals("college")) collegeDaysR.put(day, size);
+                    else if (organizationName.equals("lyceum")) lyceumDaysR.put(day, size);
 
-                if (oName.equals("personnel")) personnelDaysR.put(day, size);
-                else if (oName.equals("college")) collegeDaysR.put(day, size);
-                else if (oName.equals("lyceum")) lyceumDaysR.put(day, size);
+                    /*
+                    Log.i("fire", "Personnel "+personnelDaysR);
+                    Log.i("fire", "Personnel maxStore"+maxStore.get("personnel"));
 
-                if (maxStore.get("personnel") == personnelDaysR.size() &&
-                        maxStore.get("college") == collegeDaysR.size() &&
-                        maxStore.get("lyceum") == lyceumDaysR.size()) modifyAdapter();
+                    Log.i("fire", "College "+collegeDaysR);
+                    Log.i("fire", "College maxStore"+maxStore.get("college"));
 
+                    Log.i("fire", "Lyceum "+lyceumDaysR);
+                    */
+
+
+//                    if ((personnelDaysR.size() != 0 && maxStore.get("personnel") == personnelDaysR.size()) ||
+//                    (collegeDaysR.size() != 0 && maxStore.get("college") == collegeDaysR.size()) ||
+//                    (lyceumDaysR.size() != 0 && maxStore.get("lyceum") == lyceumDaysR.size()))
+
+
+                }
             }
 
             @Override
@@ -103,9 +128,12 @@ public class BreakfastReportFragment extends Fragment {
 
             }
         });
+
     }
 
     public void modifyAdapter() {
+        Log.i("fire","modifyAdapter");
+        Log.i("fire","collegeDaysR: "+collegeDaysR);
 
         ArrayList<StudentsItem> childStoreNewJobs;
         GroupDataItem daysGroup;
@@ -119,7 +147,7 @@ public class BreakfastReportFragment extends Fragment {
 
             String childName = perStr + personnelDaysR.get(date);
 
-            childName += "\n"+colStr;
+            childName += "\n" + colStr;
 
             if ((collegeDaysR.containsKey(date))) {
                 childName += collegeDaysR.get(date);
@@ -127,7 +155,7 @@ public class BreakfastReportFragment extends Fragment {
             } else
                 childName += 0;
 
-            childName += "\n"+lycStr;
+            childName += "\n" + lycStr;
 
             if ((lyceumDaysR.containsKey(date))) {
                 childName += lyceumDaysR.get(date);
@@ -150,9 +178,9 @@ public class BreakfastReportFragment extends Fragment {
 
             childName += (personnelDaysR.containsKey(date)) ? personnelDaysR.get(date) : 0;
 
-            childName += "\n"+colStr + collegeDaysR.get(date);
+            childName += "\n" + colStr + collegeDaysR.get(date);
 
-            childName += "\n"+lycStr;
+            childName += "\n" + lycStr;
 
             if ((lyceumDaysR.containsKey(date))) {
                 childName += lyceumDaysR.get(date);
@@ -176,10 +204,10 @@ public class BreakfastReportFragment extends Fragment {
 
             childName += (personnelDaysR.containsKey(date)) ? personnelDaysR.get(date) : 0;
 
-            childName += "\n"+colStr;
+            childName += "\n" + colStr;
             childName += (collegeDaysR.containsKey(date)) ? collegeDaysR.get(date) : 0;
 
-            childName += "\n"+lycStr + lyceumDaysR.get(date);
+            childName += "\n" + lycStr + lyceumDaysR.get(date);
 
             childStoreNewJobs.add(new StudentsItem("" + childName));
 
@@ -188,12 +216,14 @@ public class BreakfastReportFragment extends Fragment {
             groupsList.add(daysGroup);
         }
 
-
         recyclerDataAdapter = new RecyclerDataAdapter(groupsList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setAdapter(recyclerDataAdapter);
         recyclerView.setHasFixedSize(true);
     }
+
+
+
 
     private class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapter.MyViewHolder> {
         private ArrayList<GroupDataItem> dummyParentDataItems;
@@ -224,7 +254,7 @@ public class BreakfastReportFragment extends Fragment {
                 }
             }
             int count = 0;
-            String [] splitStore = null;
+            String[] splitStore = null;
 
             for (int textViewIndex = 0; textViewIndex < noOfChild; textViewIndex++) {
                 TextView currentTextView = (TextView) holder.linearLayout_childItems.getChildAt(textViewIndex);
@@ -232,7 +262,7 @@ public class BreakfastReportFragment extends Fragment {
                 currentTextView.setText(childName);
                 splitStore = childName.split(" ");//1,3,5
 
-                count = Integer.parseInt(splitStore[2].trim())+Integer.parseInt(splitStore[4].trim())+Integer.parseInt(splitStore[6].trim());
+                count = Integer.parseInt(splitStore[2].trim()) + Integer.parseInt(splitStore[4].trim()) + Integer.parseInt(splitStore[6].trim());
             }
 
             holder.tvCount.setText("" + count);

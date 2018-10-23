@@ -62,16 +62,19 @@ public class DinnerReportFragment extends Fragment {
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                groupsList.clear();
 
-                for (DataSnapshot organization : dataSnapshot.getChildren()) {
-                    String oName = organization.getKey().toString();
+                if (dataSnapshot.exists()) {
+                    groupsList.clear();
 
-                    maxStore.put(oName, organization.getChildrenCount());
+                    for (DataSnapshot organization : dataSnapshot.getChildren()) {
+                        String oName = organization.getKey().toString();
 
-                    for (DataSnapshot days : organization.getChildren()) {
-                        String day = days.getKey().toString();
-                        getReportByDay(oName, day);
+                        maxStore.put(oName, organization.getChildrenCount());
+
+                        for (DataSnapshot days : organization.getChildren()) {
+                            String day = days.getKey().toString();
+                            getReportByDay(oName, day);
+                        }
                     }
                 }
 
@@ -91,16 +94,19 @@ public class DinnerReportFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                long size = dataSnapshot.getChildrenCount();
+                if (dataSnapshot.exists()) {
+                    long size = dataSnapshot.getChildrenCount();
 
-                if (oName.equals("personnel")) personnelDaysR.put(day, size);
-                else if (oName.equals("college")) collegeDaysR.put(day, size);
-                else if (oName.equals("lyceum")) lyceumDaysR.put(day, size);
+                    if (oName.equals("personnel")) personnelDaysR.put(day, size);
+                    else if (oName.equals("college")) collegeDaysR.put(day, size);
+                    else if (oName.equals("lyceum")) lyceumDaysR.put(day, size);
 
-                if (maxStore.get("personnel") == personnelDaysR.size() &&
-                        maxStore.get("college") == collegeDaysR.size() &&
-                        maxStore.get("lyceum") == lyceumDaysR.size()) modifyAdapter();
+                    if (personnelDaysR.size() != 0 && maxStore.get("personnel") == personnelDaysR.size() &&
+                            collegeDaysR.size() != 0 && maxStore.get("college") == collegeDaysR.size() &&
+                            lyceumDaysR.size() != 0 && maxStore.get("lyceum") == lyceumDaysR.size())
 
+                        modifyAdapter();
+                }
             }
 
             @Override
@@ -124,7 +130,7 @@ public class DinnerReportFragment extends Fragment {
 
             String childName = perStr + personnelDaysR.get(date);
 
-            childName += "\n"+colStr;
+            childName += "\n" + colStr;
 
             if ((collegeDaysR.containsKey(date))) {
                 childName += collegeDaysR.get(date);
@@ -132,7 +138,7 @@ public class DinnerReportFragment extends Fragment {
             } else
                 childName += 0;
 
-            childName += "\n"+lycStr;
+            childName += "\n" + lycStr;
 
             if ((lyceumDaysR.containsKey(date))) {
                 childName += lyceumDaysR.get(date);
@@ -155,9 +161,9 @@ public class DinnerReportFragment extends Fragment {
 
             childName += (personnelDaysR.containsKey(date)) ? personnelDaysR.get(date) : 0;
 
-            childName += "\n"+colStr + collegeDaysR.get(date);
+            childName += "\n" + colStr + collegeDaysR.get(date);
 
-            childName += "\n"+lycStr;
+            childName += "\n" + lycStr;
 
             if ((lyceumDaysR.containsKey(date))) {
                 childName += lyceumDaysR.get(date);
@@ -181,10 +187,10 @@ public class DinnerReportFragment extends Fragment {
 
             childName += (personnelDaysR.containsKey(date)) ? personnelDaysR.get(date) : 0;
 
-            childName += "\n"+colStr;
+            childName += "\n" + colStr;
             childName += (collegeDaysR.containsKey(date)) ? collegeDaysR.get(date) : 0;
 
-            childName += "\n"+lycStr + lyceumDaysR.get(date);
+            childName += "\n" + lycStr + lyceumDaysR.get(date);
 
             childStoreNewJobs.add(new StudentsItem("" + childName));
 
@@ -230,7 +236,7 @@ public class DinnerReportFragment extends Fragment {
                 }
             }
             int count = 0;
-            String [] splitStore = null;
+            String[] splitStore = null;
 
             for (int textViewIndex = 0; textViewIndex < noOfChild; textViewIndex++) {
                 TextView currentTextView = (TextView) holder.linearLayout_childItems.getChildAt(textViewIndex);
@@ -238,7 +244,7 @@ public class DinnerReportFragment extends Fragment {
                 currentTextView.setText(childName);
                 splitStore = childName.split(" ");//1,3,5
 
-                count = Integer.parseInt(splitStore[2].trim())+Integer.parseInt(splitStore[4].trim())+Integer.parseInt(splitStore[6].trim());
+                count = Integer.parseInt(splitStore[2].trim()) + Integer.parseInt(splitStore[4].trim()) + Integer.parseInt(splitStore[6].trim());
             }
 
             holder.tvCount.setText("" + count);

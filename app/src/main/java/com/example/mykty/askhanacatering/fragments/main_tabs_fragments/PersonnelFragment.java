@@ -16,6 +16,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -91,8 +92,9 @@ public class PersonnelFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_college, container, false);
-        tvDate = view.findViewById(R.id.textViewTotal);
+        view = inflater.inflate(R.layout.fragment_lyceum, container, false);
+        tvDate = view.findViewById(R.id.textView2);
+
         manageDate();
         setupViews();
         personnelListCount();
@@ -101,41 +103,46 @@ public class PersonnelFragment extends Fragment {
         return view;
     }
 
+    int count = 0;
     public void refreshDayCount() {
         mDatabaseRef.child("days").child("personnel").child(firebaseDate).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.i("count","count: "+count);
+                count++;
 
-                breakfastCount = 0;
-                lunchCount = 0;
-                dinnerCount = 0;
-                breakfastList.clear();
-                lunchList.clear();
-                dinnerList.clear();
+                if(dataSnapshot.exists()) {
+                    breakfastCount = 0;
+                    lunchCount = 0;
+                    dinnerCount = 0;
+                    breakfastList.clear();
+                    lunchList.clear();
+                    dinnerList.clear();
 
-                for (DataSnapshot daysSnap : dataSnapshot.getChildren()) {
-                    for (DataSnapshot foodTime : daysSnap.getChildren()) {
+                    for (DataSnapshot daysSnap : dataSnapshot.getChildren()) {
+                        for (DataSnapshot foodTime : daysSnap.getChildren()) {
 
-                        if (daysSnap.getKey().equals("breakfast")) {
+                            if (daysSnap.getKey().equals("breakfast")) {
 
-                            breakfastCount++;
-                            breakfastList.add(foodTime.getKey());
+                                breakfastCount++;
+                                breakfastList.add(foodTime.getKey());
 
-                        } else if (daysSnap.getKey().equals("lunch")) {
+                            } else if (daysSnap.getKey().equals("lunch")) {
 
-                            lunchCount++;
-                            lunchList.add(foodTime.getKey());
+                                lunchCount++;
+                                lunchList.add(foodTime.getKey());
 
-                        } else if (daysSnap.getKey().equals("dinner")) {
+                            } else if (daysSnap.getKey().equals("dinner")) {
 
-                            dinnerCount++;
-                            dinnerList.add(foodTime.getKey());
+                                dinnerCount++;
+                                dinnerList.add(foodTime.getKey());
 
+                            }
                         }
                     }
-                }
 
-                updateViews();
+                    updateViews();
+                }
             }
 
             @Override
@@ -162,6 +169,7 @@ public class PersonnelFragment extends Fragment {
         res.close();
         tarbiewiListCount();
     }
+    String TABLE_PERSONNEL = "personnel_store";
 
     public void tarbiewiListCount() {
 
@@ -180,7 +188,7 @@ public class PersonnelFragment extends Fragment {
     }
 
     public void setupViews() {
-        recyclerView = view.findViewById(R.id.recyclerView);
+        recyclerView = view.findViewById(R.id.my_recycler_view);
         recyclerView.setHasFixedSize(true);
 
         storeDb = new StoreDatabase(getActivity());
@@ -251,6 +259,7 @@ public class PersonnelFragment extends Fragment {
         );
 
         createGuestDialog();
+        /*
         FloatingActionButton fabGuest = view.findViewById(R.id.fab_guest);
 
         fabGuest.setOnClickListener(new View.OnClickListener() {
@@ -259,20 +268,21 @@ public class PersonnelFragment extends Fragment {
                 if(checkInetConnection()) addNewGuestDialog.show();
             }
         });
+        */
     }
 
-    EditText pInfo, pIdNumber;
+    EditText pInfo, pCardNumber;
     int pos = 1;
 
     public void createGuestDialog() {
+
         addNewGuestDialog = new Dialog(getActivity());
-//        addNewGuestDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         addNewGuestDialog.setContentView(R.layout.dialog_add_guest);
         addNewGuestDialog.setTitle("Қонақ енгізу");
         TextView today = addNewGuestDialog.findViewById(R.id.textViewToday);
         Button bntOK = addNewGuestDialog.findViewById(R.id.btnOk);
         pInfo = addNewGuestDialog.findViewById(R.id.pInfo);
-        pIdNumber = addNewGuestDialog.findViewById(R.id.pIdNumber);
+        pCardNumber = addNewGuestDialog.findViewById(R.id.pIdNumber);
 
         final String[] SPINNERLIST = {"Таңғы ас", "Түскі ас", "Кешкі ас"};
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_dropdown_item_1line, SPINNERLIST);
@@ -298,33 +308,39 @@ public class PersonnelFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                if (pInfo.length() > 0 && pIdNumber.length() > 0) {
+                if (pInfo.length() > 0 && pCardNumber.length() > 0) {
                     String info = pInfo.getText().toString();
-                    String idNumber = pIdNumber.getText().toString();
+                    String cardNumber = pCardNumber.getText().toString();
                     String type = "others";
 
-                    Personnel personnel = new Personnel("" + info, idNumber,"card_n", "Қонақ", type);
+                    /*
+
                     String newKey = mDatabaseRef.child("personnel_store").child("store").push().getKey();
+
+                    Personnel personnel = new Personnel("" + info, ""+newKey, idNumber, otherDescText, type);
+                    mDatabaseRef.child("personnel_store").child("store").child(newKey).setValue(personnel);
+                    refreshPersonnels();
+
+                     */
+
+
+                    String newKey = mDatabaseRef.child("personnel_store").child("store").push().getKey();
+                    Personnel personnel = new Personnel("" + info, newKey, cardNumber, "Қонақ", type);
+
+
                     mDatabaseRef.child("personnel_store").child("store").child(newKey).setValue(personnel);
 
                     addNewGuestDialog.dismiss();
                     showSuccessToast(info);
                     pInfo.setText("");
-                    pIdNumber.setText("");
+                    pCardNumber.setText("");
+
                     incrementVersion();
-
-                    ContentValues personnelValue = new ContentValues();
-                    personnelValue.put(COLUMN_INFO, info);
-                    personnelValue.put(COLUMN_ID_NUMBER, idNumber);
-                    personnelValue.put(COLUMN_PHOTO, "Қонақ");
-                    personnelValue.put(COLUMN_TYPE, type);
-
-                    sqdb.insert(TABLE_PERSONNEL, null, personnelValue);
                     refreshDayCount();
 
                 } else {
                     if (isEmpty(pInfo.getText().toString())) pInfo.setError("Ақпарат толтырылмады");
-                    if (isEmpty(pIdNumber.getText().toString())) pIdNumber.setError("Ақпарат толтырылмады");
+                    if (isEmpty(pCardNumber.getText().toString())) pCardNumber.setError("Ақпарат толтырылмады");
 
                 }
             }
@@ -336,9 +352,12 @@ public class PersonnelFragment extends Fragment {
         myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                long version = (long) dataSnapshot.getValue();
-                version++;
-                mDatabaseRef.child("personnel_ver").setValue(version);
+
+                if(dataSnapshot.exists()) {
+                    long version = (long) dataSnapshot.getValue();
+                    version++;
+                    mDatabaseRef.child("personnel_ver").setValue(version);
+                }
             }
 
             @Override
@@ -368,7 +387,7 @@ public class PersonnelFragment extends Fragment {
         dateF = new SimpleDateFormat("EEEE, dd.MM.yyyy");
         date = dateF.format(Calendar.getInstance().getTime());
 
-        firebaseDateFormat = new SimpleDateFormat("dd_MM");//2001.07.04
+        firebaseDateFormat = new SimpleDateFormat("dd_MM_yyyy");//2001.07.04
         firebaseDate = firebaseDateFormat.format(Calendar.getInstance().getTime());
         //firebaseDate = "23_04";
 

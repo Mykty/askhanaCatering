@@ -58,16 +58,19 @@ public class LunchReportFragment extends Fragment {
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                groupsList.clear();
 
-                for (DataSnapshot organization : dataSnapshot.getChildren()) {
-                    String oName = organization.getKey().toString();
+                if(dataSnapshot.exists()) {
+                    groupsList.clear();
 
-                    maxStore.put(oName, organization.getChildrenCount());
+                    for (DataSnapshot organization : dataSnapshot.getChildren()) {
+                        String oName = organization.getKey().toString();
 
-                    for (DataSnapshot days : organization.getChildren()) {
-                        String day = days.getKey().toString();
-                        getReportByDay(oName, day);
+                        maxStore.put(oName, organization.getChildrenCount());
+
+                        for (DataSnapshot days : organization.getChildren()) {
+                            String day = days.getKey().toString();
+                            getReportByDay(oName, day);
+                        }
                     }
                 }
 
@@ -87,16 +90,18 @@ public class LunchReportFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                long size = dataSnapshot.getChildrenCount();
+                if(dataSnapshot.exists()) {
+                    long size = dataSnapshot.getChildrenCount();
 
-                if (oName.equals("personnel")) personnelDaysR.put(day, size);
-                else if (oName.equals("college")) collegeDaysR.put(day, size);
-                else if (oName.equals("lyceum")) lyceumDaysR.put(day, size);
+                    if (oName.equals("personnel")) personnelDaysR.put(day, size);
+                    else if (oName.equals("college")) collegeDaysR.put(day, size);
+                    else if (oName.equals("lyceum")) lyceumDaysR.put(day, size);
 
-                if (maxStore.get("personnel") == personnelDaysR.size() &&
-                        maxStore.get("college") == collegeDaysR.size() &&
-                        maxStore.get("lyceum") == lyceumDaysR.size()) modifyAdapter();
-
+                    if (personnelDaysR.size()!=0 && maxStore.get("personnel") == personnelDaysR.size() &&
+                            collegeDaysR.size()!=0 &&  maxStore.get("college") == collegeDaysR.size() &&
+                            lyceumDaysR.size()!=0 &&   maxStore.get("lyceum") == lyceumDaysR.size())
+                        modifyAdapter();
+                }
             }
 
             @Override

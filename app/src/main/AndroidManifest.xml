@@ -7,9 +7,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
-    <uses-permission android:name="android.permission.CAMERA" />
 
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
@@ -41,10 +45,13 @@
             android:name=".activity.EnterNewEaterActivity"
             android:theme="@style/AppTheme.EaterStyle" />
 
-        <activity android:name=".activity.DayliReportList"/>
-        <activity android:name=".activity.ScannerActivity"/>
-        <activity android:name=".activity.CollegeStudentCab"
+        <activity android:name=".activity.DayliReportList" />
+        <activity android:name=".activity.ScannerActivity" />
+
+        <activity
+            android:name=".activity.StudentCabinet"
             android:theme="@style/AppTheme.ActionBar" />
+
     </application>
 
 </manifest>

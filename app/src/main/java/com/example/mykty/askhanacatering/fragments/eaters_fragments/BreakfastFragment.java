@@ -6,24 +6,19 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.mykty.askhanacatering.R;
-import com.example.mykty.askhanacatering.activity.CollegeStudentCab;
-import com.example.mykty.askhanacatering.module.GroupDataItem;
+import com.example.mykty.askhanacatering.activity.StudentCabinet;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.timessquare.CalendarPickerView;
 
@@ -32,11 +27,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import sun.bob.mcalendarview.CellConfig;
-import sun.bob.mcalendarview.MCalendarView;
 import sun.bob.mcalendarview.MarkStyle;
 import sun.bob.mcalendarview.listeners.OnDateClickListener;
 import sun.bob.mcalendarview.listeners.OnExpDateClickListener;
@@ -45,7 +38,6 @@ import sun.bob.mcalendarview.views.ExpCalendarView;
 import sun.bob.mcalendarview.views.WeekColumnView;
 import sun.bob.mcalendarview.vo.DateData;
 
-import static com.squareup.timessquare.CalendarPickerView.SelectionMode.MULTIPLE;
 import static com.squareup.timessquare.CalendarPickerView.SelectionMode.SINGLE;
 
 public class BreakfastFragment extends Fragment implements View.OnClickListener {
@@ -68,7 +60,8 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
     long datesCount = 0;
     DateFormat dateF;
     AlertDialog.Builder dialogBuilder;
-
+    String daysLeftStr, dayStr;
+    String type;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -91,12 +84,13 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
         calendar = Calendar.getInstance();
         String monthName = monthStore[(Calendar.getInstance().get(Calendar.MONTH))];
         YearMonthTv.setText(monthName + " " + Calendar.getInstance().get(Calendar.YEAR));
-
         expCalendarView.unMarkDates();
-        idNumber = ((CollegeStudentCab) getActivity()).getIdNumber();
+
+        idNumber = ((StudentCabinet) getActivity()).getIdNumber();
+        type = ((StudentCabinet) getActivity()).getType();
 
         mDatabaseRef = FirebaseDatabase.getInstance().getReference();
-        mDatabaseRef = mDatabaseRef.child("payed").child("college").child(idNumber).child("breakfast");
+        mDatabaseRef = mDatabaseRef.child("payed").child(type).child(idNumber).child("breakfast");
 
         dateF = new SimpleDateFormat("dd_MM_yyyy");
 
@@ -111,12 +105,9 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
         tYear = calendar.get(Calendar.YEAR);
         tMonth = calendar.get(Calendar.MONTH) + 1;
         tDay = calendar.get(Calendar.DAY_OF_MONTH);
-        textViewDayLeft.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                travelToToday();
-            }
-        });
+
+        daysLeftStr = getString(R.string.daysLeft);
+        dayStr = getString(R.string.day);
     }
 
     Button btnReplace, btnDel;
@@ -124,6 +115,7 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
     TextView selectDayTv;
     AlertDialog alertDialogDeleting, alertDialogEditing;
     boolean newDaySelected = false;
+
     public void createDialogs() {
         editPayedDialog = new Dialog(getActivity());
         editPayedDialog.setContentView(R.layout.dialog_payed_edit);
@@ -143,12 +135,12 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
         calendarPicker.setOnDateSelectedListener(new CalendarPickerView.OnDateSelectedListener() {
             @Override
             public void onDateSelected(Date date) {
-                if(!highlightDatesList.contains(date)){
+                if (!highlightDatesList.contains(date)) {
 
                     selectDayTv.setTextColor(getResources().getColor(R.color.blue_light));
-                    selectDayTv.setText(dateF.format(date).replace("_","."));
+                    selectDayTv.setText(dateF.format(date).replace("_", "."));
                     newDaySelected = true;
-                }else{
+                } else {
                     selectDayTv.setTextColor(Color.RED);
                     selectDayTv.setText(getResources().getString(R.string.selectAnotherDay));
                     Toast.makeText(getActivity(), getResources().getString(R.string.breakfastSelected), Toast.LENGTH_LONG).show();
@@ -171,8 +163,8 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
         alertDialogDeleting.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        mDatabaseRef.child(pressedDate.replace('.','_')).removeValue();
-                        Toast.makeText(getActivity(), selectedDateStr+" "+getString(R.string.deleted), Toast.LENGTH_SHORT).show();
+                        mDatabaseRef.child(pressedDate.replace('.', '_')).removeValue();
+                        Toast.makeText(getActivity(), selectedDateStr + " " + getString(R.string.deleted), Toast.LENGTH_SHORT).show();
                         editPayedDialog.dismiss();
 
                     }
@@ -188,8 +180,8 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
         alertDialogEditing.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        mDatabaseRef.child(pressedDate.replace('.','_')).removeValue();
-                        mDatabaseRef.child(newDayStr.replace('.','_')).setValue(1);
+                        mDatabaseRef.child(pressedDate.replace('.', '_')).removeValue();
+                        mDatabaseRef.child(newDayStr.replace('.', '_')).setValue(1);
                         editPayedDialog.dismiss();
 
                     }
@@ -235,13 +227,11 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
         countDaysLeft = 0;
 
         for (String date : payedDates) {//24_08_2018
-            int year = Integer.parseInt(""+date.charAt(6)+ date.charAt(7)+ date.charAt(8) + date.charAt(9));
+            int year = Integer.parseInt("" + date.charAt(6) + date.charAt(7) + date.charAt(8) + date.charAt(9));
             int month = Integer.parseInt(date.charAt(3) + "" + date.charAt(4));
             int day = Integer.parseInt(date.charAt(0) + "" + date.charAt(1));
 
             boolean doMark;
-
-            Log.i("info", "Today: " + tYear + " " + tMonth + " " + tDay);
 
             if (tYear < year) {
                 doMark = true;
@@ -261,12 +251,13 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
                 countDaysLeft++;
                 markedDatesStore.add(date);
 
-                Date dateD = new Date(year-1900, month-1, day);
+                Date dateD = new Date(year - 1900, month - 1, day);
                 highlightDatesList.add(dateD);
             }
         }
 
-        textViewDayLeft.setText(getResources().getString(R.string.daysLeft)+" "+countDaysLeft+" "+getResources().getString(R.string.day));
+        if (isAdded()) textViewDayLeft.setText(daysLeftStr + " " + countDaysLeft + " " + dayStr);
+
     }
 
     public void travelToToday() {
@@ -279,6 +270,7 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
     }
 
     String pressedDate, selectedDateStr;
+
     public void expCalendarListeners() {
         expCalendarView.setOnDateClickListener(new OnExpDateClickListener()).setOnMonthScrollListener(new OnMonthScrollListener() {
             @Override
@@ -294,26 +286,22 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
         expCalendarView.setOnDateClickListener(new OnDateClickListener() {
             @Override
             public void onDateClick(View view, DateData date) {
-//                onClick(view);
-//                expCalendarView.getMarkedDates().removeAdd();
-//                expCalendarView.markDate(date);
 
-
-                String year = ""+date.getYear();
+                String year = "" + date.getYear();
                 String month = date.getMonthString();
                 String day = date.getDayString();
 
-                String conDate = day+"_"+month+"_"+year;
-                if(markedDatesStore.contains(conDate)) {
-                    pressedDate = conDate.replace("_",".");
-                    selectedDateStr = getResources().getString(R.string.title_breakfast)+": "+pressedDate;
+                String conDate = day + "_" + month + "_" + year;
+                if (markedDatesStore.contains(conDate)) {
+                    pressedDate = conDate.replace("_", ".");
+                    selectedDateStr = getResources().getString(R.string.title_breakfast) + ": " + pressedDate;
                     editPayedDialog.setTitle(selectedDateStr);
 
                     calendarPicker.clearHighlightedDates();
                     calendarPicker.highlightDates(highlightDatesList);
 
                     editPayedDialog.show();
-                }else{
+                } else {
                     Toast.makeText(getActivity(), getResources().getString(R.string.selectDay), Toast.LENGTH_LONG).show();
                 }
             }
@@ -326,25 +314,27 @@ public class BreakfastFragment extends Fragment implements View.OnClickListener 
         CellConfig.weekAnchorPointDate = selectedDate;
         expCalendarView.shrink();
     }
+
     String newDayStr;
+
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.btnReplace:
                 //.replace("_",".")
-                if(calendarPicker.getSelectedDate() != null && newDaySelected) {
-                    newDayStr = dateF.format(calendarPicker.getSelectedDate()).replace("_",".");
-                    alertDialogEditing.setTitle(getString(R.string.title_breakfast)+" "+getString(R.string.replace2));
+                if (calendarPicker.getSelectedDate() != null && newDaySelected) {
+                    newDayStr = dateF.format(calendarPicker.getSelectedDate()).replace("_", ".");
+                    alertDialogEditing.setTitle(getString(R.string.title_breakfast) + " " + getString(R.string.replace2));
                     alertDialogEditing.setMessage("Ескі күн:    " + pressedDate + "\n\n" + "Жаңа күн: " + newDayStr);
                     alertDialogEditing.show();
-                }else{
+                } else {
                     Toast.makeText(getActivity(), getString(R.string.newDaySelectMistake), Toast.LENGTH_LONG).show();
                 }
                 break;
 
             case R.id.btnDel:
                 alertDialogDeleting.setTitle(getResources().getString(R.string.delete2));
-                alertDialogDeleting.setMessage(selectedDateStr+" өшіргіңіз келеді ме?");
+                alertDialogDeleting.setMessage(selectedDateStr + " өшіргіңіз келеді ме?");
                 alertDialogDeleting.show();
                 break;
 

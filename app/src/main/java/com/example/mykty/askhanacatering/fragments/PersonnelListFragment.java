@@ -11,10 +11,12 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,6 +38,7 @@ import android.widget.Toast;
 import com.example.mykty.askhanacatering.R;
 import com.example.mykty.askhanacatering.activity.PersonnelListActivity;
 import com.example.mykty.askhanacatering.adapter.PMenuListAdapter;
+import com.example.mykty.askhanacatering.adapter.PersonnelListAdapter;
 import com.example.mykty.askhanacatering.database.StoreDatabase;
 import com.example.mykty.askhanacatering.module.PMenu;
 import com.example.mykty.askhanacatering.module.Personnel;
@@ -63,11 +66,11 @@ import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_WO
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL_COUNT;
 
-public class PersonnelListFragment extends Fragment implements OnClickListener {
+public class PersonnelListFragment extends Fragment implements SearchView.OnQueryTextListener{
 
     private static RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager linearLayoutManager;
-    private RecyclerView.LayoutManager gridLayoutManager;
+    private RecyclerView.LayoutManager gridLayoutManager, gridLayoutManager2;
     private static RecyclerView recyclerView;
     private static ArrayList<PMenu> menu;
     View view;
@@ -85,6 +88,9 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
     LinearLayout myLayout;
     int pos = 0;
     String otherDescText = "url";
+    ArrayList<Personnel> personalleStore;
+    ArrayList<Personnel> personalleStoreCopy;
+    PersonnelListAdapter adapterForAllPer;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -92,26 +98,69 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
         getActivity().setTitle(getResources().getString(R.string.personnel_list));
         setupViews();
 
-        if (!checkVersion()) {
-            fillPersonnelCount();
-        }
+        if (!checkVersion()) fillPersonnelCount();
         createDialog();
 
-        FloatingActionButton fab = view.findViewById(R.id.fab);
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if(checkInetConnection()) {
-                    addNewPersonnelDialog.show();
-                }
-            }
-        });
 
         return view;
     }
 
+    public void setupViews() {
+        recyclerView = view.findViewById(R.id.my_recycler_view);
+        recyclerView.setHasFixedSize(true);
+        total = view.findViewById(R.id.textView2);
+
+        storeDb = new StoreDatabase(getActivity());
+        sqdb = storeDb.getWritableDatabase();
+
+        FirebaseApp.initializeApp(getActivity());
+        mDatabaseRef = FirebaseDatabase.getInstance().getReference();
+
+        linearLayoutManager = new LinearLayoutManager(getActivity());
+        gridLayoutManager = new GridLayoutManager(getActivity(), 2);
+        gridLayoutManager2 = new GridLayoutManager(getActivity(), 1);
+
+        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+
+        menu = new ArrayList<PMenu>();
+
+        teachersMenu = new PMenu("Мұғалім", R.drawable.menu1, "0");
+        workersMenu = new PMenu("Персонал", R.drawable.menu2, "0");
+        volunteersMenu = new PMenu("Тәрбиеші", R.drawable.menu3, "0");
+        othersMenu = new PMenu("Басқа", R.drawable.menu3, "0");
+
+        menu.add(teachersMenu);
+        menu.add(workersMenu);
+        menu.add(volunteersMenu);
+        menu.add(othersMenu);
+
+        personalleStore = new ArrayList<Personnel>();
+        personalleStoreCopy = new ArrayList<Personnel>();
+
+        adapter = new PMenuListAdapter(menu);
+        adapterForAllPer = new PersonnelListAdapter(getActivity(), personalleStore);
+
+        recyclerView.setAdapter(adapter);
+//        recyclerView.setAdapter(adapterForAllPer);
+
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(getActivity(), recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, final int position) {
+                        Intent intent = new Intent(getActivity(), PersonnelListActivity.class);
+                        intent.putExtra("type", types[position]);
+                        startActivity(intent);
+
+                    }
+
+                    @Override
+                    public void onLongItemClick(View view, int position) {
+
+                    }
+                })
+        );
+    }
 
     public void createDialog() {
         addNewPersonnelDialog = new Dialog(getActivity());
@@ -189,7 +238,18 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
 
             }
         });
-        
+
+//        FloatingActionButton fab = view.findViewById(R.id.fab);
+//
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//
+//                if(checkInetConnection()) {
+//                    addNewPersonnelDialog.show();
+//                }
+//            }
+//        });
 
         btnCancel.setOnClickListener(new OnClickListener() {
             @Override
@@ -205,9 +265,12 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
         myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                long version = (long) dataSnapshot.getValue();
-                version++;
-                mDatabaseRef.child("personnel_ver").setValue(version);
+
+                if(dataSnapshot.exists()) {
+                    long version = (long) dataSnapshot.getValue();
+                    version++;
+                    mDatabaseRef.child("personnel_ver").setValue(version);
+                }
             }
 
             @Override
@@ -235,6 +298,22 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
         }
 
         updateViews();
+
+        Cursor cursorPer = sqdb.rawQuery("SELECT * FROM " + TABLE_PERSONNEL, null);
+
+        if (cursorPer != null && (cursorPer.getCount() > 0)) {
+            while (cursorPer.moveToNext()) {
+
+                personalleStore.add(new Personnel("" + cursorPer.getString(0),
+                        ""+cursorPer.getString(1),
+                        ""+cursorPer.getString(2),
+                        ""+cursorPer.getString(3),
+                        ""+cursorPer.getString(4)));
+
+            }
+        }
+
+        personalleStoreCopy = (ArrayList<Personnel>)personalleStore.clone();
     }
 
     public void refreshPersonnels() {
@@ -242,42 +321,44 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                totalC = 0;
-                teacherC = 0;
-                workerC = 0;
-                volunteerC = 0;
-                others = 0;
+                if(dataSnapshot.exists()) {
+                    totalC = 0;
+                    teacherC = 0;
+                    workerC = 0;
+                    volunteerC = 0;
+                    others = 0;
 
-                storeDb.cleanPersonnel(sqdb);
+                    storeDb.cleanPersonnel(sqdb);
 
-                for (DataSnapshot teachersSnapshot : dataSnapshot.getChildren()) {
-                    Personnel personnel = teachersSnapshot.getValue(Personnel.class);
+                    for (DataSnapshot teachersSnapshot : dataSnapshot.getChildren()) {
+                        Personnel personnel = teachersSnapshot.getValue(Personnel.class);
 
-                    String info = personnel.getInfo();
-                    String idNumber = personnel.getId_number().toLowerCase();
-                    String cardNumber = personnel.getCard_number().toLowerCase();
-                    String photo = personnel.getPhoto();
-                    String type = personnel.getType();
-                    totalC++;
+                        String info = personnel.getInfo();
+                        String idNumber = personnel.getId_number().toLowerCase();
+                        String cardNumber = personnel.getCard_number().toLowerCase();
+                        String photo = personnel.getPhoto();
+                        String type = personnel.getType();
+                        totalC++;
 
-                    if (type.equals("teacher")) teacherC++;
-                    else if (type.equals("worker")) workerC++;
-                    else if (type.equals("volunteer")) volunteerC++;
-                    else if (type.equals("others")) others++;
-                    else if (type.contains("guest")) others++;
+                        if (type.equals("teacher")) teacherC++;
+                        else if (type.equals("worker")) workerC++;
+                        else if (type.equals("volunteer")) volunteerC++;
+                        else if (type.equals("others")) others++;
+                        else if (type.contains("guest")) others++;
 
-                    ContentValues personnelValue = new ContentValues();
-                    personnelValue.put(COLUMN_INFO, info);
-                    personnelValue.put(COLUMN_ID_NUMBER, idNumber);
-                    personnelValue.put(COLUMN_CARD_NUMBER, cardNumber);
-                    personnelValue.put(COLUMN_PHOTO, photo);
-                    personnelValue.put(COLUMN_TYPE, type);
+                        ContentValues personnelValue = new ContentValues();
+                        personnelValue.put(COLUMN_INFO, info);
+                        personnelValue.put(COLUMN_ID_NUMBER, idNumber);
+                        personnelValue.put(COLUMN_CARD_NUMBER, cardNumber);
+                        personnelValue.put(COLUMN_PHOTO, photo);
+                        personnelValue.put(COLUMN_TYPE, type);
 
-                    sqdb.insert(TABLE_PERSONNEL, null, personnelValue);
+                        sqdb.insert(TABLE_PERSONNEL, null, personnelValue);
 
+                    }
+                    updateViews();
+                    updateDb();
                 }
-                updateViews();
-                updateDb();
 
             }
 
@@ -320,12 +401,14 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                String newVersion = dataSnapshot.getValue().toString();
-                if (!getCurrentVersion().equals(newVersion)) {
-                    updateCurrentVersion(newVersion);
-                    refreshPersonnels();
+                if(dataSnapshot.exists()) {
+                    String newVersion = dataSnapshot.getValue().toString();
+                    if (!getCurrentVersion().equals(newVersion)) {
+                        updateCurrentVersion(newVersion);
+                        refreshPersonnels();
 
-                    versionChanged = true;
+                        versionChanged = true;
+                    }
                 }
 
             }
@@ -365,61 +448,6 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
         toast.show();
     }
 
-    public void setupViews() {
-        recyclerView = view.findViewById(R.id.my_recycler_view);
-        recyclerView.setHasFixedSize(true);
-        total = view.findViewById(R.id.textView2);
-
-        storeDb = new StoreDatabase(getActivity());
-        sqdb = storeDb.getWritableDatabase();
-
-        FirebaseApp.initializeApp(getActivity());
-        mDatabaseRef = FirebaseDatabase.getInstance().getReference();
-
-        linearLayoutManager = new LinearLayoutManager(getActivity());
-        gridLayoutManager = new GridLayoutManager(getActivity(), 2);
-
-        recyclerView.setLayoutManager(gridLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-
-        menu = new ArrayList<PMenu>();
-
-        teachersMenu = new PMenu("Мұғалім", R.drawable.menu1, "0");
-        workersMenu = new PMenu("Персонал", R.drawable.menu2, "0");
-        volunteersMenu = new PMenu("Тәрбиеші", R.drawable.menu3, "0");
-        othersMenu = new PMenu("Басқа", R.drawable.menu3, "0");
-
-        menu.add(teachersMenu);
-        menu.add(workersMenu);
-        menu.add(volunteersMenu);
-        menu.add(othersMenu);
-
-        adapter = new PMenuListAdapter(menu);
-        recyclerView.setAdapter(adapter);
-
-        recyclerView.addOnItemTouchListener(
-                new RecyclerItemClickListener(getActivity(), recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, final int position) {
-                        Intent intent = new Intent(getActivity(), PersonnelListActivity.class);
-                        intent.putExtra("type", types[position]);
-                        startActivity(intent);
-
-                    }
-
-                    @Override
-                    public void onLongItemClick(View view, int position) {
-
-                    }
-                })
-        );
-    }
-
-    @Override
-    public void onClick(View view) {
-
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -429,7 +457,12 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        inflater.inflate(R.menu.p_menu, menu);
+        inflater.inflate(R.menu.search_menu, menu);
+
+        final MenuItem searchItem = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(this);
+
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -437,17 +470,61 @@ public class PersonnelListFragment extends Fragment implements OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.act_list) {
+        if (id == R.id.action_search) {
+
+            return true;
+        }
+
+        /*if (id == R.id.act_list) {
             recyclerView.setLayoutManager(linearLayoutManager);
             return true;
         }
         if (id == R.id.act_grid) {
             recyclerView.setLayoutManager(gridLayoutManager);
             return true;
-        }
+        }*/
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public boolean onQueryTextChange(String query) {
+        if(query.length() > 0 ) {
+            recyclerView.setLayoutManager(gridLayoutManager2);
+            recyclerView.setAdapter(adapterForAllPer);
+
+            filter(query);
+        }else{
+
+            recyclerView.setLayoutManager(gridLayoutManager);
+            recyclerView.setAdapter(adapter);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String newText) {
+        filter(newText);
+        return false;
+    }
+
+    public void filter(String text) {
+        personalleStore.clear();
+
+        if(text.isEmpty()){
+            personalleStore.addAll(personalleStoreCopy);
+        } else{
+            text = text.toLowerCase();
+            for(Personnel item: personalleStoreCopy){
+                if(item.getInfo().toLowerCase().contains(text) || item.getInfo().toUpperCase().contains(text)){
+                    personalleStore.add(item);
+                }
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
     public boolean checkInetConnection(){
         if(isNetworkAvailable(getActivity())){
             return true;
