@@ -2,6 +2,7 @@ package com.example.mykty.askhanacatering.activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -75,6 +76,8 @@ public class DayliReportList extends AppCompatActivity {
     StoreDatabase storeDb;
 
     SQLiteDatabase sqdb;
+    ProgressDialog reportLoadingPd;
+    int totalBreakfast = 0, totalLunch = 0, totalDinner = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +103,9 @@ public class DayliReportList extends AppCompatActivity {
         storeDb = new StoreDatabase(this);
         sqdb = storeDb.getWritableDatabase();
         mDatabaseRef = FirebaseDatabase.getInstance().getReference();
+
+        reportLoadingPd = new ProgressDialog(this);
+        reportLoadingPd.setMessage("Loading");
 
         getDataFromFirebase2();
     }
@@ -181,6 +187,8 @@ public class DayliReportList extends AppCompatActivity {
     }
 
     public void getDataFromFirebase2() {
+
+        reportLoadingPd.show();
         mDatabaseRef.child("days").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -262,7 +270,6 @@ public class DayliReportList extends AppCompatActivity {
 
     }
 
-    int totalBreakfast = 0, totalLunch = 0, totalDinner = 0;
     private void exportToExcel2(HashMap<String, Integer> repo) {
         HashMap<String, Integer> readyReportList = repo;
 
@@ -338,6 +345,7 @@ public class DayliReportList extends AppCompatActivity {
                 sheet.addCell(new Label(2, i, getString(R.string.title_dinner)));
                 sheet.addCell(new Label(3, i, "" + totalDinner));
 
+                reportLoadingPd.dismiss();
 
             } catch (RowsExceededException e) {
                 e.printStackTrace();

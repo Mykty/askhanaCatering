@@ -55,8 +55,11 @@ import java.util.Calendar;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_ID_NUMBER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_INFO;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_PHOTO;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_TOTAL_COUNT;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_TYPE;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_VOLUNTEER_COUNT;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL_COUNT;
 
 public class PersonnelFragment extends Fragment {
     View view;
@@ -71,7 +74,8 @@ public class PersonnelFragment extends Fragment {
     private static ArrayList<PMenu> menu;
     private static RecyclerView.Adapter adapter;
     int breakfastCount = 0, lunchCount = 0, dinnerCount = 0;
-    int totalBreakfast, totalPersonnel, totalDinner;
+    String totalBreakfast = "0", totalDinner = "0";
+    String totalPersonnel = "0";
 
     PMenu breakfastMenu;//завтрак
     PMenu lunchMenu; //обед
@@ -82,7 +86,7 @@ public class PersonnelFragment extends Fragment {
     ArrayList<String> dinnerList;
     Dialog addNewGuestDialog;
 
-    String types[] = {"volunteer","worker","volunteer"};
+    String types[] = {"volunteer", "worker", "volunteer"};
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -104,17 +108,19 @@ public class PersonnelFragment extends Fragment {
     }
 
     int count = 0;
+
     public void refreshDayCount() {
         mDatabaseRef.child("days").child("personnel").child(firebaseDate).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.i("count","count: "+count);
+                Log.i("count", "count: " + count);
                 count++;
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     breakfastCount = 0;
                     lunchCount = 0;
                     dinnerCount = 0;
+
                     breakfastList.clear();
                     lunchList.clear();
                     dinnerList.clear();
@@ -161,6 +167,15 @@ public class PersonnelFragment extends Fragment {
     }
 
     public void personnelListCount() {
+        Cursor res = sqdb.rawQuery("SELECT " + COLUMN_TOTAL_COUNT + " FROM " + TABLE_PERSONNEL_COUNT, null);
+        if(res.moveToNext())
+            totalPersonnel = res.getString(0).toString();
+
+        res.close();
+        tarbiewiListCount();
+    }
+    /*
+    public void personnelListCount() {
 
         totalPersonnel = 0;
         Cursor res = sqdb.rawQuery("SELECT " + COLUMN_INFO + " FROM " + TABLE_PERSONNEL, null);
@@ -168,9 +183,23 @@ public class PersonnelFragment extends Fragment {
 
         res.close();
         tarbiewiListCount();
-    }
+    }*/
+
     String TABLE_PERSONNEL = "personnel_store";
 
+    public void tarbiewiListCount() {
+        Cursor res = sqdb.rawQuery("SELECT " + COLUMN_VOLUNTEER_COUNT + " FROM " + TABLE_PERSONNEL_COUNT, null);
+        if(res.moveToNext())
+            totalBreakfast = res.getString(0).toString();
+
+        totalDinner = totalBreakfast;
+
+        res.close();
+        updateViews();
+
+    }
+
+    /*
     public void tarbiewiListCount() {
 
         totalBreakfast = 0;
@@ -186,6 +215,7 @@ public class PersonnelFragment extends Fragment {
         updateViews();
 
     }
+*/
 
     public void setupViews() {
         recyclerView = view.findViewById(R.id.my_recycler_view);
@@ -224,7 +254,7 @@ public class PersonnelFragment extends Fragment {
                 new RecyclerItemClickListener(getActivity(), recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, final int position) {
-                        if(checkInetConnection()){
+                        if (checkInetConnection()) {
                             Intent intent = new Intent(getActivity(), ReportListActivity.class);
                             intent.putExtra("type", "personnel");
                             intent.putExtra("firebaseDate", "firebaseDate");
@@ -325,7 +355,7 @@ public class PersonnelFragment extends Fragment {
 
 
                     String newKey = mDatabaseRef.child("personnel_store").child("store").push().getKey();
-                    Personnel personnel = new Personnel("" + info, newKey, cardNumber, "Қонақ", type);
+                    Personnel personnel = new Personnel(newKey, "" + info, newKey, cardNumber, "Қонақ", type);
 
 
                     mDatabaseRef.child("personnel_store").child("store").child(newKey).setValue(personnel);
@@ -340,7 +370,8 @@ public class PersonnelFragment extends Fragment {
 
                 } else {
                     if (isEmpty(pInfo.getText().toString())) pInfo.setError("Ақпарат толтырылмады");
-                    if (isEmpty(pCardNumber.getText().toString())) pCardNumber.setError("Ақпарат толтырылмады");
+                    if (isEmpty(pCardNumber.getText().toString()))
+                        pCardNumber.setError("Ақпарат толтырылмады");
 
                 }
             }
@@ -353,7 +384,7 @@ public class PersonnelFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     long version = (long) dataSnapshot.getValue();
                     version++;
                     mDatabaseRef.child("personnel_ver").setValue(version);
@@ -367,11 +398,11 @@ public class PersonnelFragment extends Fragment {
         });
     }
 
-    public void showSuccessToast(String info){
+    public void showSuccessToast(String info) {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View toastLayout = inflater.inflate(R.layout.custom_toast, (ViewGroup) view.findViewById(R.id.custom_toast_layout));
         TextView text = toastLayout.findViewById(R.id.custom_toast_message);
-        text.setText(info+" сәтті енгізілді!");
+        text.setText(info + " сәтті енгізілді!");
 
         Toast toast = new Toast(getActivity());
         toast.setDuration(Toast.LENGTH_LONG);
@@ -418,10 +449,10 @@ public class PersonnelFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    public boolean checkInetConnection(){
-        if(isNetworkAvailable(getActivity())){
+    public boolean checkInetConnection() {
+        if (isNetworkAvailable(getActivity())) {
             return true;
-        }else{
+        } else {
             Toast.makeText(getActivity(), "Интернет байланысыңызды тексеріңіз", Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -429,7 +460,7 @@ public class PersonnelFragment extends Fragment {
 
     public boolean isNetworkAvailable(Context context) {
         ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null &&

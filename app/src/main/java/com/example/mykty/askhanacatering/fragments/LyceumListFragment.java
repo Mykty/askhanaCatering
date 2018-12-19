@@ -16,6 +16,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -73,7 +74,7 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
     View view;
     TextView textViewTotal;
     FloatingActionButton fab;
-    Dialog addNewLyceumStudent;
+    Dialog addNewCollegeStudent;
     Button addNewStudentBtn, btnCancel; //choosePhotoBtn, scannerQrCodeBtn
     FirebaseStorage storage;
     StorageReference storageReference;
@@ -82,12 +83,19 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
     EditText sInfo, sCardNumber;
     private final int PICK_IMAGE_REQUEST = 71;
     private Uri filePath;
-    boolean photoSelected = false, qrCodeScannered = false;
     private final int CAMERA_REQUEST = 77;
+    boolean photoSelected = false, qrCodeScannered = false;
     ArrayList<GroupDataItem> groupsList;
     ArrayList<Personnel> studentsStoreForSearch;
     ArrayList<Personnel> studentsStoreForSearchCopy;
     PersonnelListAdapter adapterForAllStudents;
+    Query studentsQuery;
+
+    ArrayList<StudentsItem> studentStore;
+    GroupDataItem groupDataItem;
+    int totalCount = 0;
+    ArrayList<String> groupsStore;
+    public static final String TABLE_LYCEUM_STUDENTS = "lyceum_students_list";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -106,7 +114,7 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
     }
 
     public void setupViews() {
-        getActivity().setTitle(getString(R.string.lyceum_list));
+        getActivity().setTitle(getResources().getString(R.string.lyceum_list));
 
         storeDb = new StoreDatabase(getActivity());
         sqdb = storeDb.getWritableDatabase();
@@ -122,43 +130,39 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
         idNumberHashMap = new HashMap<>();
         fab = view.findViewById(R.id.fab_guest);
         fab.setOnClickListener(this);
-
         studentsStoreForSearch = new ArrayList<>();
         studentsStoreForSearchCopy = new ArrayList<>();
 
-        getCollegeStudents();
+//        getCollegeStudents();
+        getStudents();
         createDialogs();
+
     }
 
     public void createDialogs() {
-        addNewLyceumStudent = new Dialog(getActivity());
-        addNewLyceumStudent.setTitle(getString(R.string.enter_new_pupil));
-        addNewLyceumStudent.setContentView(R.layout.dialog_add_new_college_student);
+        addNewCollegeStudent = new Dialog(getActivity());
+        addNewCollegeStudent.setTitle(getResources().getString(R.string.enter_new_student));
+        addNewCollegeStudent.setContentView(R.layout.dialog_add_new_college_student);
 
         classes = getResources().getStringArray(R.array.classes);
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_dropdown_item_1line, classes);
-        spinnerGroups = addNewLyceumStudent.findViewById(R.id.select_group_spinner);
+        spinnerGroups = addNewCollegeStudent.findViewById(R.id.select_group_spinner);
         spinnerGroups.setAdapter(arrayAdapter);
 
-       //choosePhotoBtn   = addNewLyceumStudent.findViewById(R.id.choosePhoto);
-//        scannerQrCodeBtn = addNewLyceumStudent.findViewById(R.id.scannerQrCode);
-        addNewStudentBtn = addNewLyceumStudent.findViewById(R.id.btnOk);
-        btnCancel = addNewLyceumStudent.findViewById(R.id.btnCancel);
+        addNewStudentBtn = addNewCollegeStudent.findViewById(R.id.btnOk);
+        btnCancel = addNewCollegeStudent.findViewById(R.id.btnCancel);
 
+        sInfo = addNewCollegeStudent.findViewById(R.id.sInfo);
+        sCardNumber = addNewCollegeStudent.findViewById(R.id.sCardNumber);
 
-        sInfo       = addNewLyceumStudent.findViewById(R.id.sInfo);
-        sCardNumber = addNewLyceumStudent.findViewById(R.id.sCardNumber);
-
-        //choosePhotoBtn.setOnClickListener(this);
-//        scannerQrCodeBtn.setOnClickListener(this);
         addNewStudentBtn.setOnClickListener(this);
         btnCancel.setOnClickListener(this);
     }
 
     public void modifyAdapter() {
         recyclerDataAdapter = new RecyclerDataAdapter(groupsList);
-        adapterForAllStudents = new PersonnelListAdapter(getActivity(), studentsStoreForSearch);
+        adapterForAllStudents = new PersonnelListAdapter(getActivity(), studentsStoreForSearch, idNumberHashMap);
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mRecyclerView.setAdapter(recyclerDataAdapter);
@@ -168,36 +172,13 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-
             case R.id.fab_guest:
 
                 if (checkInetConnection()) {
-                    addNewLyceumStudent.show();
+                    addNewCollegeStudent.show();
                 }
                 break;
 
-            /*
-            case R.id.choosePhoto:
-
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, getResources().getString(R.string.photo)), PICK_IMAGE_REQUEST);
-
-                break;
-
-            case R.id.scannerQrCode:
-                Intent t = new Intent(getActivity(), ScannerActivity.class);
-                startActivityForResult(t, 101);
-
-//                scannerQrCodeBtn.setBackground(getResources().getDrawable(R.drawable.button_style2_selected));
-//                scannerQrCodeBtn.setTextColor(Color.WHITE);
-//                scannerQrCodeBtn.setText("Qr code: qwert1234");
-//                returnedResult = "qwert1234";
-//                qrCodeScannered = true;
-
-                break;
-*/
             case R.id.btnCancel:
                 clearAll();
                 break;
@@ -210,8 +191,16 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
                 String sName = sInfo.getText().toString();
                 String sCardN = sCardNumber.getText().toString();
 
+                if(sName.contains("\n")){
+                    sName = sName.substring(0, sName.length()-1);
+                }
+
+                if(sCardN.contains("\n")){
+                    sCardN = sCardN.substring(0, sCardN.length()-1);
+                }
+
                 if (sGroup.equals(getResources().getString(R.string.select))) {
-                    Toast.makeText(getActivity(), getString(R.string.select_class_mistake), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), getResources().getString(R.string.select_group_mistake), Toast.LENGTH_SHORT).show();
                     tOk = false;
                 } else if (sName.length() == 0) {
                     sInfo.setError(getResources().getString(R.string.s_info_mistake));
@@ -220,16 +209,6 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
                     sCardNumber.setError(getResources().getString(R.string.read_card_number_mistake));
                     tOk = false;
                 }
-                /*
-                else if (!qrCodeScannered) {
-                    scannerQrCodeBtn.setTextColor(Color.RED);
-                    Toast.makeText(getActivity(), getResources().getString(R.string.qr_code_scanner_mistake), Toast.LENGTH_SHORT).show();
-                    tOk = false;
-                }else if (!photoSelected) {
-                    choosePhotoBtn.setTextColor(Color.RED);
-                    Toast.makeText(getActivity(), getResources().getString(R.string.photoSelectMistake), Toast.LENGTH_SHORT).show();
-                    tOk = false;
-                }*/
 
                 if (tOk) {
                     registerStudent(sGroup, sName, sCardN, returnedResult);
@@ -240,39 +219,6 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
     }
 
     String returnedResult = "qr code";
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        /*
-        if (requestCode == 101) {
-            if (resultCode == RESULT_OK) {
-                returnedResult = data.getData().toString();
-                scannerQrCodeBtn.setBackground(getResources().getDrawable(R.drawable.button_style2_selected));
-                scannerQrCodeBtn.setTextColor(Color.WHITE);
-                scannerQrCodeBtn.setText("Qr code: " + returnedResult);
-                qrCodeScannered = true;
-            }
-        }
-
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            filePath = data.getData();
-            choosePhotoBtn.setText(getResources().getString(R.string.photoSelected));
-            choosePhotoBtn.setBackground(getResources().getDrawable(R.drawable.button_style2_selected));
-            choosePhotoBtn.setTextColor(Color.WHITE);
-            photoSelected = true;
-        }
-
-        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            filePath = data.getData();
-            choosePhotoBtn.setText(getResources().getString(R.string.photoSelected));
-            choosePhotoBtn.setBackground(getResources().getDrawable(R.drawable.button_style2_selected));
-            choosePhotoBtn.setTextColor(Color.WHITE);
-            photoSelected = true;
-        }*/
-    }
-
     String downloadUri = "photo url";
 
     private void registerStudent(String sGroup, String sName, String card_number, String qr_code) {
@@ -288,102 +234,57 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
         showSuccessToast();
     }
 
-    /*private String uploadImageAndRegisterStudent(final String sGroup, final String sName, final String card_number, final String qr_code) {
-        if (filePath != null) {
-            final ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setTitle(getResources().getString(R.string.photoLoading));
-            progressDialog.show();
 
-            final String photoPath = "images/" + UUID.randomUUID().toString();
-            final StorageReference ref = storageReference.child(photoPath);
-            ref.putFile(filePath)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            progressDialog.dismiss();
-                            downloadUri = taskSnapshot.getDownloadUrl().toString();
+    public void getStudents() {
+        totalCount = 0;
+        groupsStore = new ArrayList<>();
 
+        Cursor cursorGroup = sqdb.rawQuery("SELECT s_group FROM " + TABLE_LYCEUM_STUDENTS, null);
 
-                            if (downloadUri != null) {
-                                String id_number = getIdNumber();
-                                Student student = new Student(sName, id_number, card_number, downloadUri, qr_code);
-
-                                String key = mDatabaseRef.child("classes").child(sGroup).push().getKey();
-                                mDatabaseRef.child("classes").child(sGroup).child(key).setValue(student);
-
-                                incrementCollegeVersion();
-                                clearAll();
-                                showSuccessToast();
-                            }
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            progressDialog.dismiss();
-                            Toast.makeText(getActivity(), "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
-                            progressDialog.setMessage("Uploaded " + (int) progress + "%");
-                        }
-                    });
+        if (cursorGroup != null && (cursorGroup.getCount() > 0)) {
+            while (cursorGroup.moveToNext()) {
+                if (!groupsStore.contains(cursorGroup.getString(0)))
+                    groupsStore.add(cursorGroup.getString(0));
+            }
         }
 
-        return downloadUri;
-    }
-*/
-    Query studentsQuery;
-    ArrayList<StudentsItem> studentStore;
-    GroupDataItem groupDataItem;
-    int totalCount = 0;
-
-
-    public void getCollegeStudents() {
         groupsList = new ArrayList<>();
-        studentsQuery = mDatabaseRef.child("classes").orderByKey();
-        studentsQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
-                    groupsList.clear();
-                    idNumberHashMap.clear();
+        for (String group : groupsStore) {
+            Cursor cursorStd = sqdb.rawQuery("SELECT * FROM " + TABLE_LYCEUM_STUDENTS + " WHERE s_group = '" + group + "'", null);
+            studentStore = new ArrayList<>();
 
-                    for (DataSnapshot groups : dataSnapshot.getChildren()) {
+            if (cursorStd != null && (cursorStd.getCount() > 0)) {
+                while (cursorStd.moveToNext()) {
 
-                        String group = groups.getKey();
-                        studentStore = new ArrayList<>();
+                    Student student = new Student(cursorStd.getString(0),
+                            cursorStd.getString(1),
+                            cursorStd.getString(2),
+                            cursorStd.getString(3),
+                            cursorStd.getString(4),
+                            cursorStd.getString(5),
+                            cursorStd.getString(6));
 
-                        for (DataSnapshot studentData : groups.getChildren()) {
-                            Student student = studentData.getValue(Student.class);
-                            studentStore.add(new StudentsItem(student.getName()));
 
-                            studentsStoreForSearch.add(new Personnel("" + student.getName() + "\nГруппа: " + group, " ", " ", " ", " "));
-                            idNumberHashMap.put(student.getName(), student);
-                            totalCount++;
-                        }
+                    studentStore.add(new StudentsItem(student.getName()));
+                    studentsStoreForSearch.add(new Personnel("", "" + student.getName(), " ", " ", "Группа: " + group, "others"));
+                    idNumberHashMap.put(student.getName(), student);
 
-                        groupDataItem = new GroupDataItem(studentStore);
-                        groupDataItem.setParentName(group);
-                        groupsList.add(groupDataItem);
-
-                    }
-                    textViewTotal.setText(getResources().getString(R.string.all_title) + " " + totalCount + " " + getString(R.string.student));
-
-                    studentsStoreForSearchCopy = (ArrayList<Personnel>) studentsStoreForSearch.clone();
-                    modifyAdapter();
+                    totalCount++;
                 }
             }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+            groupDataItem = new GroupDataItem(studentStore);
+            groupDataItem.setParentName(group);
+            groupsList.add(groupDataItem);
 
-            }
-        });
+
+        }
+
+        studentsStoreForSearchCopy = (ArrayList<Personnel>) studentsStoreForSearch.clone();
+
+        textViewTotal.setText(getResources().getString(R.string.all_title) + " " + totalCount + " " + getString(R.string.student));
+        modifyAdapter();
     }
 
     public String getIdNumber() {
@@ -396,18 +297,9 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
         spinnerGroups.setSelection(0);
         sInfo.getText().clear();
         sCardNumber.getText().clear();
-
-//        scannerQrCodeBtn.setText(getResources().getString(R.string.qr_code_scanner));
-//        scannerQrCodeBtn.setTextColor(Color.BLACK);
-//        scannerQrCodeBtn.setBackground(getResources().getDrawable(R.drawable.button_style2));
-
-//        choosePhotoBtn.setText(getResources().getString(R.string.photo));
-//        choosePhotoBtn.setTextColor(Color.BLACK);
-//        choosePhotoBtn.setBackground(getResources().getDrawable(R.drawable.button_style2));
-
         photoSelected = false;
         qrCodeScannered = false;
-        addNewLyceumStudent.dismiss();
+        addNewCollegeStudent.dismiss();
     }
 
     public void incrementLyceumVersion() {
@@ -415,12 +307,9 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
         myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if(dataSnapshot.exists()) {
-                    long version = (long) dataSnapshot.getValue();
-                    version++;
-                    mDatabaseRef.child("lyceum_student_list_ver").setValue(version);
-                }
+                long version = (long) dataSnapshot.getValue();
+                version++;
+                mDatabaseRef.child("lyceum_student_list_ver").setValue(version);
             }
 
             @Override
@@ -428,6 +317,8 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
 
             }
         });
+        getStudents();
+
     }
 
     public void showSuccessToast() {
@@ -444,7 +335,6 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
 
     private class RecyclerDataAdapter extends RecyclerView.Adapter<RecyclerDataAdapter.MyViewHolder> {
         private ArrayList<GroupDataItem> dummyParentDataItems;
-        int totalCount = 0;
 
         RecyclerDataAdapter(ArrayList<GroupDataItem> dummyParentDataItems) {
             this.dummyParentDataItems = dummyParentDataItems;
@@ -460,7 +350,7 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
         public void onBindViewHolder(RecyclerDataAdapter.MyViewHolder holder, int position) {
             GroupDataItem dummyParentDataItem = dummyParentDataItems.get(position);
             holder.textView_parentName.setText(dummyParentDataItem.getParentName());
-            //
+
             int noOfChildTextViews = holder.linearLayout_childItems.getChildCount();
             int noOfChild = dummyParentDataItem.getChildDataItems().size();
             if (noOfChild < noOfChildTextViews) {
@@ -478,10 +368,7 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
                 }
             }
 
-            totalCount += noOfChild;
             holder.tvCount.setText("" + noOfChild);
-
-            textViewTotal.setText(getString(R.string.all_title) + " " + totalCount+" "+getString(R.string.pupil));
         }
 
         @Override
@@ -514,6 +401,7 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
                     textView.setTextSize(20.0f);
 
                     textView.setBackgroundColor(getResources().getColor(R.color.white));
+//                    textView.setBackground(getResources().getDrawable(R.drawable.background_sub_module_text));
 //                    textView.setBackground(ContextCompat.getDrawable(context, R.drawable.background_sub_module_text));
                     LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);//LinearLayout.LayoutParams.WRAP_CONTENT);
 
@@ -547,6 +435,7 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
                     }
                 }
             }
+
         }
     }
 
@@ -598,38 +487,12 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
         dialog.show();
     }
 
-    public void manageDate() {
-        dateF = new SimpleDateFormat("EEEE, dd_MM_yyyy");//2001.07.04
-        dateFr = new SimpleDateFormat("dd_MM_yyyy");//2001.07.04
-        timeF = new SimpleDateFormat("HH:mm");//14:08
-
-        date = dateF.format(Calendar.getInstance().getTime());
-        firebaseDate = dateFr.format(Calendar.getInstance().getTime());
-        time = timeF.format(Calendar.getInstance().getTime());
-
-    }
-    String TABLE_LYCEUM_STUDENTS = "lyceum_students_list";
-    public Cursor getStudentByQrCode(String qr_code) {
-        Cursor res = sqdb.rawQuery("SELECT * FROM " + TABLE_LYCEUM_STUDENTS + " WHERE qr_code=?", new String[]{qr_code});
-        return res;
-    }
-
-    public Cursor getStudentsByGroup(String sgroup) {
-        Cursor res = sqdb.rawQuery("SELECT * FROM " + TABLE_LYCEUM_STUDENTS + " WHERE s_group=?", new String[]{sgroup});
-        return res;
-    }
-
-    public Cursor getStudentsByName(String sname) {
-        Cursor res = sqdb.rawQuery("SELECT * FROM " + TABLE_LYCEUM_STUDENTS + " WHERE name=?", new String[]{sname});
-        return res;
-    }
-
     @Override
     public boolean onQueryTextChange(String query) {
-        if(query.length() > 0 ) {
+        if (query.length() > 0) {
             mRecyclerView.setAdapter(adapterForAllStudents);
             filter(query);
-        }else{
+        } else {
 
             mRecyclerView.setAdapter(recyclerDataAdapter);
         }
@@ -657,12 +520,12 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
     public void filter(String text) {
         studentsStoreForSearch.clear();
 
-        if(text.isEmpty()){
+        if (text.isEmpty()) {
             studentsStoreForSearch.addAll(studentsStoreForSearchCopy);
-        } else{
+        } else {
             text = text.toLowerCase();
-            for(Personnel item: studentsStoreForSearchCopy){
-                if(item.getInfo().toLowerCase().contains(text) || item.getInfo().toUpperCase().contains(text)){
+            for (Personnel item : studentsStoreForSearchCopy) {
+                if (item.getInfo().toLowerCase().contains(text) || item.getInfo().toUpperCase().contains(text)) {
                     studentsStoreForSearch.add(item);
                 }
             }
@@ -670,6 +533,28 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
 
 
         adapterForAllStudents.notifyDataSetChanged();
+    }
+
+    public void manageDate() {
+        dateF = new SimpleDateFormat("EEEE, dd_MM_yyyy");//2001.07.04
+        dateFr = new SimpleDateFormat("dd_MM_yyyy");//2001.07.04
+        timeF = new SimpleDateFormat("HH:mm");//14:08
+
+        date = dateF.format(Calendar.getInstance().getTime());
+        firebaseDate = dateFr.format(Calendar.getInstance().getTime());
+        time = timeF.format(Calendar.getInstance().getTime());
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+    }
+
+    public Cursor getStudentsByName(String sname) {
+        Cursor res = sqdb.rawQuery("SELECT * FROM " + TABLE_LYCEUM_STUDENTS + " WHERE name=?", new String[]{sname});
+        return res;
     }
 
     public boolean isNetworkAvailable(Context context) {
@@ -690,4 +575,5 @@ public class LyceumListFragment extends Fragment implements View.OnClickListener
             return false;
         }
     }
+
 }

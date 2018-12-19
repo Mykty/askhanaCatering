@@ -72,6 +72,7 @@ public class ScannerActivity extends AppCompatActivity implements ZXingScannerVi
                 requestPermission();
             }
         }
+
         checkPermission();
 //        requestPermission();
 

@@ -16,6 +16,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -187,6 +188,14 @@ public class CollegeListFragment extends Fragment implements View.OnClickListene
                 String sName = sInfo.getText().toString();
                 String sCardN = sCardNumber.getText().toString();
 
+                if(sName.contains("\n")){
+                    sName = sName.substring(0, sName.length()-1);
+                }
+
+                if(sCardN.contains("\n")){
+                    sCardN = sCardN.substring(0, sCardN.length()-1);
+                }
+
                 if (sGroup.equals(getResources().getString(R.string.select))) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.select_group_mistake), Toast.LENGTH_SHORT).show();
                     tOk = false;
@@ -197,6 +206,7 @@ public class CollegeListFragment extends Fragment implements View.OnClickListene
                     sCardNumber.setError(getResources().getString(R.string.read_card_number_mistake));
                     tOk = false;
                 }
+
 
                 /*
                 else if (!qrCodeScannered) {
@@ -253,6 +263,7 @@ public class CollegeListFragment extends Fragment implements View.OnClickListene
         incrementCollegeVersion();
         clearAll();
         showSuccessToast();
+
     }
 
     Query studentsQuery;
@@ -260,6 +271,7 @@ public class CollegeListFragment extends Fragment implements View.OnClickListene
     GroupDataItem groupDataItem;
     int totalCount = 0;
     ArrayList<String> groupsStore;
+    String TABLE_COLLEGE_STUDENTS = "college_students_list";
 
     public void getStudents() {
         totalCount = 0;
@@ -293,7 +305,7 @@ public class CollegeListFragment extends Fragment implements View.OnClickListene
 
 
                     studentStore.add(new StudentsItem(student.getName()));
-                    studentsStoreForSearch.add(new Personnel("" + student.getName(), " ", " ", "Группа: " + group, "others"));
+                    studentsStoreForSearch.add(new Personnel("", "" + student.getName(), " ", " ", "Группа: " + group, "others"));
                     idNumberHashMap.put(student.getName(), student);
 
                     totalCount++;
@@ -333,7 +345,7 @@ public class CollegeListFragment extends Fragment implements View.OnClickListene
                             Student student = studentData.getValue(Student.class);
                             studentStore.add(new StudentsItem(student.getName()));
 
-                            studentsStoreForSearch.add(new Personnel("" + student.getName(), " ", " ", "Группа: " + group, "others"));
+                            studentsStoreForSearch.add(new Personnel("", "" + student.getName(), " ", " ", "Группа: " + group, "others"));
 
                             idNumberHashMap.put(student.getName(), student);
 
@@ -649,7 +661,6 @@ public class CollegeListFragment extends Fragment implements View.OnClickListene
         }*/
     }
 
-    String TABLE_COLLEGE_STUDENTS = "college_students_list";
 
     public Cursor getStudentByQrCode(String qr_code) {
         Cursor res = sqdb.rawQuery("SELECT * FROM " + TABLE_COLLEGE_STUDENTS + " WHERE qr_code=?", new String[]{qr_code});

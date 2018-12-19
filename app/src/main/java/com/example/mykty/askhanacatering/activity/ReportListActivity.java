@@ -104,7 +104,8 @@ public class ReportListActivity extends AppCompatActivity implements SearchView.
                         "" + cursor.getString(1),
                         "" + cursor.getString(2),
                         "" + cursor.getString(3),
-                        "" + cursor.getString(4));
+                        "" + cursor.getString(4),
+                        "" + cursor.getString(5));
 
                 store.add(personnel);
             }
@@ -123,7 +124,7 @@ public class ReportListActivity extends AppCompatActivity implements SearchView.
             if (cursor != null && (cursor.getCount() > 0)) {
                 cursor.moveToNext();
 
-                Personnel personnel = new Personnel("" + cursor.getString(2),
+                Personnel personnel = new Personnel("", "" + cursor.getString(2),
                         "" + cursor.getString(3),
                         "" + cursor.getString(4),
                         "" + cursor.getString(6),

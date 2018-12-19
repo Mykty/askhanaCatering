@@ -17,12 +17,16 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,6 +64,8 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
     RelativeLayout relativeLayout;
     Personnel deletedPersonnel;
     String deletedKey, title;
+    String types[] = {"", "teacher", "worker", "volunteer", "others"};
+    String[] SPINNERLIST = {"Таңдаңыз", "Мұғалім", "Персонал", "Тәрбиеші", "Басқа"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,7 +138,8 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                         ""+cursor.getString(1),
                         ""+cursor.getString(2),
                         ""+cursor.getString(3),
-                        ""+cursor.getString(4)));
+                        ""+cursor.getString(4),
+                        ""+cursor.getString(5)));
             }
         }
 
@@ -148,7 +155,8 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                             ""+cursor2.getString(1),
                             ""+cursor2.getString(2),
                             ""+cursor2.getString(3),
-                            ""+cursor.getString(4)));
+                            ""+cursor.getString(4),
+                            ""+cursor.getString(5)));
                 }
             }
         }
@@ -182,7 +190,8 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                 new RecyclerItemClickListener(this, recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, final int position) {
-                        showDialog(personalleStore.get(position).getInfo(), personalleStore.get(position).getCard_number(), position);
+                        showDialog(personalleStore.get(position), position);
+//                        showDialog(personalleStore.get(position).getInfo(), personalleStore.get(position).getCard_number(), position);
                     }
 
                     @Override
@@ -192,19 +201,40 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                 })
         );
     }
-
-    public void showDialog(final String tName, String id_code, final int pos) {
+    int selectedPos = 0;
+    Button ok;
+    String tName, id_code;
+    public void showDialog(final Personnel personnel, final int pos){
+//            final String tName, String id_code, final int pos) {
+        tName = personnel.getInfo();
+        id_code = personnel.getCard_number();
 
         final Dialog alert = new Dialog(this, R.style.AlertDialogTheme);
         alert.setContentView(R.layout.dialog_edit);
 
         final TextView tvName = alert.findViewById(R.id.textViewName);
         TextView oIdNumber = alert.findViewById(R.id.oldIdNUmber);
-        final EditText nIdNumber = alert.findViewById(R.id.newIdNUmber);
+        final EditText nCardNumber = alert.findViewById(R.id.newIdNUmber);
 
-        Button ok = alert.findViewById(R.id.btnOk);
+        ok = alert.findViewById(R.id.btnOk);
         Button cancel = alert.findViewById(R.id.btnCancel);
         Button del = alert.findViewById(R.id.btnDel);
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, SPINNERLIST);
+        Spinner spinner = alert.findViewById(R.id.persTypeSpinner);
+        spinner.setAdapter(arrayAdapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedPos = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         tvName.setText(tName);
         oIdNumber.setText("CARD Number: " + id_code);
@@ -215,10 +245,20 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                 switch (v.getId()) {
                     case R.id.btnOk:
                         if (isNetworkAvailable(PersonnelListActivity.this)) {
-                            updateIdNumber(tName, nIdNumber.getText().toString());
-                            fillPersonnel(type);
-                            Toast.makeText(PersonnelListActivity.this, tName+" CARD Number өзгерді", Toast.LENGTH_SHORT).show();
+                            if (nCardNumber.getText().length() > 0) {
+                                updateIdNumber(personnel, nCardNumber.getText().toString());
+                                fillPersonnel(type);
+                                Toast.makeText(PersonnelListActivity.this, tName + " CARD Number өзгерді", Toast.LENGTH_SHORT).show();
+                            }
+
+                            if(selectedPos!=0){
+                                String newType = types[selectedPos];
+                                updatePersonnelType(personnel, newType);
+                                Toast.makeText(PersonnelListActivity.this, tName + "Персонал түрі өзгерді", Toast.LENGTH_SHORT).show();
+
+                            }
                         }
+
 
                         break;
                     case R.id.btnDel:
@@ -230,7 +270,7 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
 
                     case R.id.btnCancel:
 
-                        nIdNumber.setText("");
+                        nCardNumber.setText("");
                         break;
                 }
 
@@ -244,47 +284,36 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
 
         alert.show();
     }
-    
-    public void updateIdNumber(final String info, final String idNumber) {
 
+    public void updatePersonnelType(Personnel personnel, final String type) {
+        final String info = personnel.getInfo();
+
+        ContentValues versionValues = new ContentValues();
+        versionValues.put(COLUMN_TYPE, type.toLowerCase());
+
+        sqdb.update(TABLE_PERSONNEL, versionValues, COLUMN_TYPE + "='" + info + "'", null);
+
+        mDatabaseRef.child("personnel_store").child("store").child(personnel.getKey()).child("type").setValue(type.toLowerCase());
+        incrementVersion();
+    }
+
+
+    public void updateIdNumber(Personnel personnel, final String idNumber) {
+        String info = personnel.getInfo();
         ContentValues versionValues = new ContentValues();
         versionValues.put(COLUMN_ID_NUMBER, idNumber.toLowerCase());
 
         sqdb.update(TABLE_PERSONNEL, versionValues, COLUMN_INFO + "='" + info + "'", null);
-
-        Query myTopPostsQuery = mDatabaseRef.child("personnel_store");
-        myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if(dataSnapshot.exists()) {
-                    for (DataSnapshot personnelStore : dataSnapshot.getChildren()) {
-                        Personnel personnel = personnelStore.getValue(Personnel.class);
-                        if (info.equals(personnel.getInfo())) {
-                            String key = personnelStore.getKey();
-
-                            mDatabaseRef.child("personnel_store").child(key).child("id_number").setValue(idNumber.toLowerCase());
-                            incrementVersion();
-                            break;
-
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
+        mDatabaseRef.child("personnel_store").child("store").child(personnel.getKey()).child("card_number").setValue(idNumber.toLowerCase());
+        incrementVersion();
     }
+
 
     public void deletePersonnel(final String info, final int pos){
         sqdb.delete(TABLE_PERSONNEL, COLUMN_INFO + "='" + info + "'", null);
         adapter.removeItem(pos);
 
-        Query myTopPostsQuery = mDatabaseRef.child("personnel_store");
+        Query myTopPostsQuery = mDatabaseRef.child("personnel_store").child("store");
         myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -295,7 +324,7 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
                         if (info.equals(personnel.getInfo())) {
                             String key = personnelStore.getKey();
 
-                            mDatabaseRef.child("personnel_store").child(key).removeValue();
+                            mDatabaseRef.child("personnel_store").child("store").child(key).removeValue();
                             incrementVersion();
                             deletedPersonnel = personnel;
                             deletedKey = key;
@@ -317,7 +346,7 @@ public class PersonnelListActivity extends AppCompatActivity implements SearchVi
             @Override
             public void onClick(View view) {
                 adapter.restoreItem(deletedPersonnel, pos);
-                mDatabaseRef.child("personnel_store").child(deletedKey).setValue(deletedPersonnel);
+                mDatabaseRef.child("personnel_store").child("store").child(deletedKey).setValue(deletedPersonnel);
 
                 ContentValues personnelValue = new ContentValues();
                 personnelValue.put(COLUMN_INFO, deletedPersonnel.getInfo());

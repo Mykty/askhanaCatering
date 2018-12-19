@@ -45,8 +45,10 @@ import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_LY
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_PHOTO;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_QR_CODE;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_STUDENTS_VER;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_TOTAL_COUNT;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_COLLEGE_STUDENTS;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_LYCEUM_STUDENTS;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL_COUNT;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_VER;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -84,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         storeDb = new StoreDatabase(this);
         sqdb = storeDb.getWritableDatabase();
 
-        if(checkInetConnection()){
+        if (checkInetConnection()) {
             checkCollegeVersion();
             checkLyceumVersion();
 
@@ -94,21 +96,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         personnelListFragment = new PersonnelListFragment();
         orderFragment = new OrderFragment();
         dayliReportFragment = new DayliReportFragment();
-        collegeListFragment = new CollegeListFragment();
+
+        if (collegeVersionNotChanged) collegeListFragment = new CollegeListFragment();
+
         lyceumListFragment = new LyceumListFragment();
 
-        changeFragment(todayFragment);
+        Cursor res = sqdb.rawQuery("SELECT " + COLUMN_TOTAL_COUNT + " FROM " + TABLE_PERSONNEL_COUNT, null);
+        if (!res.moveToNext()) changeFragment(personnelListFragment);
+        else changeFragment(todayFragment);
+        res.close();
+
     }
 
-    public void checkCollegeVersion(){
+    boolean collegeVersionNotChanged = true;
+
+    public void checkCollegeVersion() {
         Query myTopPostsQuery = mDatabase.child("college_student_list_ver");
         myTopPostsQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     String newVersion = dataSnapshot.getValue().toString();
                     if (!getCollegeStudentCurVer().equals(newVersion)) {
+                        collegeVersionNotChanged = false;
                         updateCollegeStudentCurrentVersion(newVersion);
                         getCollegeStudents();
 
@@ -122,15 +133,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             }
         });
+
     }
 
-    public void checkLyceumVersion(){
+    public void checkLyceumVersion() {
         Query myTopPostsQuery = mDatabase.child("lyceum_student_list_ver");
         myTopPostsQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     String newVersion = dataSnapshot.getValue().toString();
                     if (!getLyceumStudentCurVer().equals(newVersion)) {
                         updateLyceumStudentCurrentVersion(newVersion);
@@ -148,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
-    public void getCollegeStudents(){
+    public void getCollegeStudents() {
         storeDb.cleanCollegeStudentsTable(sqdb);
 
         studentsQuery = mDatabase.child("groups").orderByKey();
@@ -156,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     for (DataSnapshot groups : dataSnapshot.getChildren()) {
 
                         String group = groups.getKey();
@@ -177,8 +189,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
 
                     }
-                    collegeListFragment.getStudents();
-                    collegeListFragment.modifyAdapter();
+
+                    collegeListFragment = new CollegeListFragment();
                 }
             }
 
@@ -189,15 +201,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
-
-    public void getLyceumStudents(){
+    public void getLyceumStudents() {
         storeDb.cleanLyceumStudentsTable(sqdb);
         studentsQuery = mDatabase.child("classes").orderByKey();
         studentsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     for (DataSnapshot classes : dataSnapshot.getChildren()) {
 
                         String lclass = classes.getKey();
@@ -205,12 +216,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             Student student1 = student.getValue(Student.class);
 
                             ContentValues sValues = new ContentValues();
+                            sValues.put(COLUMN_FKEY, student.getKey());
+                            sValues.put(COLUMN_QR_CODE, student1.getQr_code());
                             sValues.put(COLUMN_INFO, student1.getName());
                             sValues.put(COLUMN_ID_NUMBER, student1.getId_number());
                             sValues.put(COLUMN_CARD_NUMBER, student1.getCard_number());
-                            sValues.put(COLUMN_PHOTO, student1.getPhoto());
-                            sValues.put(COLUMN_QR_CODE, student1.getQr_code());
                             sValues.put(COLUMN_GROUP, lclass);
+                            sValues.put(COLUMN_PHOTO, student1.getPhoto());
 
                             sqdb.insert(TABLE_LYCEUM_STUDENTS, null, sValues);
 
@@ -228,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public String getCollegeStudentCurVer() {
-        Cursor res = sqdb.rawQuery("SELECT "+COLUMN_STUDENTS_VER+" FROM "+TABLE_VER, null);
+        Cursor res = sqdb.rawQuery("SELECT " + COLUMN_STUDENTS_VER + " FROM " + TABLE_VER, null);
         res.moveToNext();
         String version = res.getString(0);
         return version;
@@ -237,11 +249,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void updateCollegeStudentCurrentVersion(String newVersion) {
         ContentValues versionValues = new ContentValues();
         versionValues.put(COLUMN_STUDENTS_VER, newVersion);
-        sqdb.update(TABLE_VER, versionValues, COLUMN_STUDENTS_VER+"=" + getCollegeStudentCurVer(), null);
+        sqdb.update(TABLE_VER, versionValues, COLUMN_STUDENTS_VER + "=" + getCollegeStudentCurVer(), null);
     }
 
     public String getLyceumStudentCurVer() {
-        Cursor res = sqdb.rawQuery("SELECT "+COLUMN_LYCEUM_VER+" FROM "+TABLE_VER, null);
+        Cursor res = sqdb.rawQuery("SELECT " + COLUMN_LYCEUM_VER + " FROM " + TABLE_VER, null);
         res.moveToNext();
         String version = res.getString(0);
         return version;
@@ -250,13 +262,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void updateLyceumStudentCurrentVersion(String newVersion) {
         ContentValues versionValues = new ContentValues();
         versionValues.put(COLUMN_LYCEUM_VER, newVersion);
-        sqdb.update(TABLE_VER, versionValues, COLUMN_LYCEUM_VER+"=" + getLyceumStudentCurVer(), null);
+        sqdb.update(TABLE_VER, versionValues, COLUMN_LYCEUM_VER + "=" + getLyceumStudentCurVer(), null);
     }
 
 
     public boolean isNetworkAvailable(Context context) {
         ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null &&
@@ -264,14 +276,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return isConnected;
     }
 
-    public boolean checkInetConnection(){
-        if(isNetworkAvailable(this)){
+    public boolean checkInetConnection() {
+        if (isNetworkAvailable(this)) {
             return true;
-        }else{
+        } else {
             Toast.makeText(MainActivity.this, "Интернетіңізді тексерініз ", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -281,24 +294,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
-/*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
+    /*
+        @Override
+        public boolean onCreateOptionsMenu(Menu menu) {
+            getMenuInflater().inflate(R.menu.main, menu);
             return true;
         }
 
-        return super.onOptionsItemSelected(item);
-    }
-*/
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            int id = item.getItemId();
+
+            if (id == R.id.action_settings) {
+                return true;
+            }
+
+            return super.onOptionsItemSelected(item);
+        }
+    */
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -309,10 +323,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_personnel) {
             changeFragment(personnelListFragment);
 
-        }else if (id == R.id.nav_college) {
+        } else if (id == R.id.nav_college) {
             changeFragment(collegeListFragment);
 
-        }else if (id == R.id.nav_lyceum) {
+        } else if (id == R.id.nav_lyceum) {
             changeFragment(lyceumListFragment);
 
         } else if (id == R.id.nav_orders) {
@@ -330,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    public void changeFragment(Fragment cfragment){
+    public void changeFragment(Fragment cfragment) {
         Fragment fragment = cfragment;
         FragmentManager fragmentManager = getSupportFragmentManager();
 

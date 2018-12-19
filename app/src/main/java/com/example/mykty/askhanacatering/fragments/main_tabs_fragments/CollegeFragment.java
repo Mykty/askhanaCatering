@@ -101,7 +101,7 @@ public class CollegeFragment extends Fragment {
 
         storeDb = new StoreDatabase(getActivity());
         sqdb = storeDb.getWritableDatabase();
-        buyFoodBtn = view.findViewById(R.id.fab_guest);
+        buyFoodBtn = view.findViewById(R.id.fab);
 
         FirebaseApp.initializeApp(getActivity());
         mDatabaseRef = FirebaseDatabase.getInstance().getReference();

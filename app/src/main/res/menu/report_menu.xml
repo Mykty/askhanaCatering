@@ -10,9 +10,9 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/reportDayli"
+        android:id="@+id/cleanMonth"
         android:orderInCategory="100"
-        android:title="Күндік"
+        android:title="Айды тазалау"
         android:icon="@drawable/report_icon"
         app:showAsAction="never" />
 

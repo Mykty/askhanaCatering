@@ -82,7 +82,6 @@
                 android:text="&#8942;"
                 android:textAppearance="?android:textAppearanceLarge" />
 
-
             <LinearLayout
                 android:id="@+id/childLayout"
                 android:layout_width="match_parent"

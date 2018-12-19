@@ -1,15 +1,18 @@
 package com.example.mykty.askhanacatering.fragments;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -18,6 +21,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,11 +30,14 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,6 +47,7 @@ import com.example.mykty.askhanacatering.activity.PersonnelListActivity;
 import com.example.mykty.askhanacatering.adapter.PMenuListAdapter;
 import com.example.mykty.askhanacatering.adapter.PersonnelListAdapter;
 import com.example.mykty.askhanacatering.database.StoreDatabase;
+import com.example.mykty.askhanacatering.fragments.main_tabs_fragments.PersonnelFragment;
 import com.example.mykty.askhanacatering.module.PMenu;
 import com.example.mykty.askhanacatering.module.Personnel;
 import com.example.mykty.askhanacatering.module.RecyclerItemClickListener;
@@ -54,6 +62,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_CARD_NUMBER;
+import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_FKEY;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_ID_NUMBER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_INFO;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_OTHER_COUNT;
@@ -66,7 +75,7 @@ import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_WO
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL_COUNT;
 
-public class PersonnelListFragment extends Fragment implements SearchView.OnQueryTextListener{
+public class PersonnelListFragment extends Fragment implements SearchView.OnQueryTextListener {
 
     private static RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager linearLayoutManager;
@@ -91,6 +100,8 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
     ArrayList<Personnel> personalleStore;
     ArrayList<Personnel> personalleStoreCopy;
     PersonnelListAdapter adapterForAllPer;
+    boolean searched = false;
+    RelativeLayout relativeLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -107,6 +118,8 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
 
     public void setupViews() {
         recyclerView = view.findViewById(R.id.my_recycler_view);
+        relativeLayout = view.findViewById(R.id.coordinatorLayout);
+
         recyclerView.setHasFixedSize(true);
         total = view.findViewById(R.id.textView2);
 
@@ -148,9 +161,15 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
                 new RecyclerItemClickListener(getActivity(), recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, final int position) {
-                        Intent intent = new Intent(getActivity(), PersonnelListActivity.class);
-                        intent.putExtra("type", types[position]);
-                        startActivity(intent);
+                        if (!searched) {
+                            Intent intent = new Intent(getActivity(), PersonnelListActivity.class);
+                            intent.putExtra("type", types[position]);
+                            startActivity(intent);
+                        } else {
+
+                            showDialog(personalleStore.get(position), position);
+                            Toast.makeText(getActivity(), "After search", Toast.LENGTH_SHORT).show();
+                        }
 
                     }
 
@@ -219,7 +238,7 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
 
                     String newKey = mDatabaseRef.child("personnel_store").child("store").push().getKey();
 
-                    Personnel personnel = new Personnel("" + info, ""+newKey, idNumber, otherDescText, type);
+                    Personnel personnel = new Personnel("", "" + info, "" + newKey, idNumber, otherDescText, type);
                     mDatabaseRef.child("personnel_store").child("store").child(newKey).setValue(personnel);
                     refreshPersonnels();
 
@@ -259,14 +278,179 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
         });
     }
 
-    //    others: desc write to photo
+
+    int selectedPos = 0;
+    Button ok;
+    String tName, id_code;
+
+    public void showDialog(final Personnel personnel, final int pos) {
+        tName = personnel.getInfo();
+        id_code = personnel.getCard_number();
+
+        final Dialog alert = new Dialog(getActivity(), R.style.AlertDialogTheme);
+        alert.setContentView(R.layout.dialog_edit);
+
+        final TextView tvName = alert.findViewById(R.id.textViewName);
+        TextView oIdNumber = alert.findViewById(R.id.oldIdNUmber);
+        final EditText nCardNumber = alert.findViewById(R.id.newIdNUmber);
+
+        ok = alert.findViewById(R.id.btnOk);
+        Button cancel = alert.findViewById(R.id.btnCancel);
+        Button del = alert.findViewById(R.id.btnDel);
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_dropdown_item_1line, SPINNERLIST);
+        Spinner spinner = alert.findViewById(R.id.persTypeSpinner);
+        spinner.setAdapter(arrayAdapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedPos = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        tvName.setText(tName);
+        oIdNumber.setText("CARD Number: " + id_code);
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (v.getId()) {
+                    case R.id.btnOk:
+                        if (isNetworkAvailable(getActivity())) {
+                            if (nCardNumber.getText().length() > 0) {
+                                updateCardNumber(personnel, nCardNumber.getText().toString());
+                                //fillPersonnel(type);
+                                Toast.makeText(getActivity(), tName + " CARD Number өзгерді", Toast.LENGTH_SHORT).show();
+                            }
+
+                            if (selectedPos != 0) {
+                                String newType = types[selectedPos];
+                                updatePersonnelType(personnel, newType);
+                                Toast.makeText(getActivity(), tName + "Персонал түрі өзгерді", Toast.LENGTH_SHORT).show();
+
+                            }
+                        }
+
+
+                        break;
+                    case R.id.btnDel:
+                        if (isNetworkAvailable(getActivity())) {
+                            deletePersonnel(tName, pos);
+                        }
+                        break;
+
+
+                    case R.id.btnCancel:
+
+                        nCardNumber.setText("");
+                        break;
+                }
+
+                alert.dismiss();
+            }
+        };
+
+        ok.setOnClickListener(listener);
+        cancel.setOnClickListener(listener);
+        del.setOnClickListener(listener);
+
+        alert.show();
+    }
+
+    public void updatePersonnelType(Personnel personnel, final String type) {
+        final String info = personnel.getInfo();
+
+        ContentValues versionValues = new ContentValues();
+        versionValues.put(COLUMN_TYPE, type.toLowerCase());
+
+        sqdb.update(TABLE_PERSONNEL, versionValues, COLUMN_TYPE + "='" + info + "'", null);
+
+        mDatabaseRef.child("personnel_store").child("store").child(personnel.getKey()).child("type").setValue(type.toLowerCase());
+        incrementVersion();
+    }
+
+    public void updateCardNumber(Personnel personnel, final String cardNumber) {
+
+        String info = personnel.getInfo();
+        ContentValues versionValues = new ContentValues();
+        versionValues.put(COLUMN_ID_NUMBER, cardNumber.toLowerCase());
+
+        sqdb.update(TABLE_PERSONNEL, versionValues, COLUMN_INFO + "='" + info + "'", null);
+        mDatabaseRef.child("personnel_store").child("store").child(personnel.getKey()).child("card_number").setValue(cardNumber.toLowerCase());
+        incrementVersion();
+        personnel.setCard_number(cardNumber.toLowerCase());
+
+    }
+
+    Personnel deletedPersonnel;
+    String deletedKey;
+
+    public void deletePersonnel(final String info, final int pos) {
+        sqdb.delete(TABLE_PERSONNEL, COLUMN_INFO + "='" + info + "'", null);
+        adapterForAllPer.removeItem(pos);
+
+        Query myTopPostsQuery = mDatabaseRef.child("personnel_store").child("store");
+        myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot personnelStore : dataSnapshot.getChildren()) {
+                        Personnel personnel = personnelStore.getValue(Personnel.class);
+                        if (info.equals(personnel.getInfo())) {
+                            String key = personnelStore.getKey();
+
+                            mDatabaseRef.child("personnel_store").child("store").child(key).removeValue();
+                            incrementVersion();
+                            deletedPersonnel = personnel;
+                            deletedKey = key;
+                            break;
+
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        Snackbar snackbar = Snackbar.make(relativeLayout, "Өшірілді: " + info, Snackbar.LENGTH_LONG);
+        snackbar.setAction("Қайтару", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                adapterForAllPer.restoreItem(deletedPersonnel, pos);
+                mDatabaseRef.child("personnel_store").child("store").child(deletedKey).setValue(deletedPersonnel);
+
+                ContentValues personnelValue = new ContentValues();
+                personnelValue.put(COLUMN_INFO, deletedPersonnel.getInfo());
+                personnelValue.put(COLUMN_ID_NUMBER, deletedPersonnel.getId_number());
+                personnelValue.put(COLUMN_PHOTO, deletedPersonnel.getPhoto());
+                personnelValue.put(COLUMN_TYPE, deletedPersonnel.getType());
+
+                sqdb.insert(TABLE_PERSONNEL, null, personnelValue);
+            }
+        });
+        snackbar.setActionTextColor(Color.YELLOW);
+        snackbar.show();
+
+    }
+
     public void incrementVersion() {
         Query myTopPostsQuery = mDatabaseRef.child("personnel_ver");
         myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     long version = (long) dataSnapshot.getValue();
                     version++;
                     mDatabaseRef.child("personnel_ver").setValue(version);
@@ -278,6 +462,7 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
 
             }
         });
+//        fillPersonnelCount();
     }
 
     public boolean isEmpty(String text) {
@@ -286,6 +471,8 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
 
     public void fillPersonnelCount() {
         Cursor cursor = sqdb.rawQuery("SELECT * FROM " + TABLE_PERSONNEL_COUNT, null);
+        personalleStore.clear();
+        personalleStoreCopy.clear();
 
         if (cursor != null && (cursor.getCount() > 0)) {
             cursor.moveToNext();
@@ -305,15 +492,16 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
             while (cursorPer.moveToNext()) {
 
                 personalleStore.add(new Personnel("" + cursorPer.getString(0),
-                        ""+cursorPer.getString(1),
-                        ""+cursorPer.getString(2),
-                        ""+cursorPer.getString(3),
-                        ""+cursorPer.getString(4)));
+                        "" + cursorPer.getString(1),
+                        "" + cursorPer.getString(2),
+                        "" + cursorPer.getString(3),
+                        "" + cursorPer.getString(4),
+                        "" + cursorPer.getString(5)));
 
             }
         }
 
-        personalleStoreCopy = (ArrayList<Personnel>)personalleStore.clone();
+        personalleStoreCopy = (ArrayList<Personnel>) personalleStore.clone();
     }
 
     public void refreshPersonnels() {
@@ -321,7 +509,7 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     totalC = 0;
                     teacherC = 0;
                     workerC = 0;
@@ -332,6 +520,9 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
 
                     for (DataSnapshot teachersSnapshot : dataSnapshot.getChildren()) {
                         Personnel personnel = teachersSnapshot.getValue(Personnel.class);
+
+                        String key = teachersSnapshot.getKey().toString();
+                        Log.i("info", "key: " + key);
 
                         String info = personnel.getInfo();
                         String idNumber = personnel.getId_number().toLowerCase();
@@ -347,6 +538,7 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
                         else if (type.contains("guest")) others++;
 
                         ContentValues personnelValue = new ContentValues();
+                        personnelValue.put(COLUMN_FKEY, key);
                         personnelValue.put(COLUMN_INFO, info);
                         personnelValue.put(COLUMN_ID_NUMBER, idNumber);
                         personnelValue.put(COLUMN_CARD_NUMBER, cardNumber);
@@ -401,7 +593,7 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(dataSnapshot.exists()) {
+                if (dataSnapshot.exists()) {
                     String newVersion = dataSnapshot.getValue().toString();
                     if (!getCurrentVersion().equals(newVersion)) {
                         updateCurrentVersion(newVersion);
@@ -462,6 +654,16 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setOnQueryTextListener(this);
+        searchView.setIconified(true);
+
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+
+            @Override
+            public boolean onClose() {
+                hideKeyboard(getActivity());
+                return false;
+            }
+        });
 
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -489,13 +691,14 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
 
     @Override
     public boolean onQueryTextChange(String query) {
-        if(query.length() > 0 ) {
+        if (query.length() > 0) {
             recyclerView.setLayoutManager(gridLayoutManager2);
             recyclerView.setAdapter(adapterForAllPer);
-
+            searched = true;
             filter(query);
-        }else{
+        } else {
 
+            searched = false;
             recyclerView.setLayoutManager(gridLayoutManager);
             recyclerView.setAdapter(adapter);
         }
@@ -511,12 +714,12 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
     public void filter(String text) {
         personalleStore.clear();
 
-        if(text.isEmpty()){
+        if (text.isEmpty()) {
             personalleStore.addAll(personalleStoreCopy);
-        } else{
+        } else {
             text = text.toLowerCase();
-            for(Personnel item: personalleStoreCopy){
-                if(item.getInfo().toLowerCase().contains(text) || item.getInfo().toUpperCase().contains(text)){
+            for (Personnel item : personalleStoreCopy) {
+                if (item.getInfo().toLowerCase().contains(text) || item.getInfo().toUpperCase().contains(text)) {
                     personalleStore.add(item);
                 }
             }
@@ -525,18 +728,27 @@ public class PersonnelListFragment extends Fragment implements SearchView.OnQuer
         adapter.notifyDataSetChanged();
     }
 
-    public boolean checkInetConnection(){
-        if(isNetworkAvailable(getActivity())){
+    public boolean checkInetConnection() {
+        if (isNetworkAvailable(getActivity())) {
             return true;
-        }else{
+        } else {
             Toast.makeText(getActivity(), "Интернет байланысыңызды тексеріңіз", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
 
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        View view = activity.getCurrentFocus();
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
     public boolean isNetworkAvailable(Context context) {
         ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null &&

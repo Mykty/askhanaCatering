@@ -36,6 +36,8 @@ public class TodayFragment extends Fragment {
 
         getActivity().setTitle("Бастысы");
 
+        PersonnelListFragment personnelListFragment = new PersonnelListFragment();
+
         return view;
     }
 

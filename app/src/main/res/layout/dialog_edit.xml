@@ -44,6 +44,17 @@
                     android:hint="жаңа CARD Number енгізіңіз"
                     android:textSize="20sp" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Персонал түрін өзгерту: " />
+
+                <Spinner
+                    android:id="@+id/persTypeSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:textColorHint="#05ab9a"/>
+
             </LinearLayout>
 
             <RelativeLayout

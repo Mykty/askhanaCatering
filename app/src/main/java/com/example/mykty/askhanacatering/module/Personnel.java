@@ -1,6 +1,7 @@
 package com.example.mykty.askhanacatering.module;
 
 public class Personnel{
+    String key;
     String info;
     String id_number;
     String card_number;
@@ -9,12 +10,21 @@ public class Personnel{
 
     public Personnel(){}
 
-    public Personnel(String info, String id_number, String card_number, String photo, String type){
+    public Personnel(String key, String info, String id_number, String card_number, String photo, String type){
+        this.key = key;
         this.info = info;
         this.card_number = card_number;
         this.id_number = id_number;
         this.photo = photo;
         this.type = type;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getCard_number() {

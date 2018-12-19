@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class StoreDatabase extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "askhana_catering.db";
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 18;
 
     public static final String TABLE_PERSONNEL = "personnel_store";
     public static final String COLUMN_FKEY= "fkey";
@@ -49,6 +49,7 @@ public class StoreDatabase extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         db.execSQL("CREATE TABLE " + TABLE_PERSONNEL + "(" +
+                COLUMN_FKEY + " TEXT, " +
                 COLUMN_INFO + " TEXT, " +
                 COLUMN_ID_NUMBER + " TEXT, " +
                 COLUMN_CARD_NUMBER + " TEXT, " +
@@ -65,6 +66,7 @@ public class StoreDatabase extends SQLiteOpenHelper {
                 COLUMN_PHOTO  + " INTEGER )");
 
         db.execSQL("CREATE TABLE " + TABLE_LYCEUM_STUDENTS + "(" +
+                COLUMN_FKEY + " TEXT, " +
                 COLUMN_QR_CODE + " TEXT, " +
                 COLUMN_INFO + " TEXT, " +
                 COLUMN_ID_NUMBER + " TEXT, " +

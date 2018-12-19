@@ -1,7 +1,6 @@
 package com.example.mykty.askhanacatering.activity;
 
 import android.app.Dialog;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -17,7 +16,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -50,14 +48,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_CARD_NUMBER;
-import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_ID_NUMBER;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.COLUMN_INFO;
 import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_COLLEGE_STUDENTS;
-import static com.example.mykty.askhanacatering.database.StoreDatabase.TABLE_PERSONNEL;
 import static com.squareup.timessquare.CalendarPickerView.SelectionMode.MULTIPLE;
 
-public class StudentCabinet extends AppCompatActivity implements View.OnClickListener {
+public class LyceumPupilCabinet extends AppCompatActivity implements View.OnClickListener {
 
     ImageView teacherPhoto;
     TextView teacherInfo;
@@ -79,7 +74,7 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
     LunchFragment lunchFragment;
     TextView tvBPrice, tvLPrice, tvDPrice, sumPrice;
     Button btnPay;
-    DatabaseReference mDatabaseRef, foodDatabaseRef, studentRef;
+    DatabaseReference mDatabaseRef, foodDatabaseRef, studentRef ;
     DateFormat dateF;
     String idNumber, imgUrl;
     int bRes = 0, lRes = 0, dRes = 0;
@@ -88,7 +83,6 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
     SQLiteDatabase sqdb;
     StoreDatabase storeDb;
     String sCardNumber;
-    String parentTable, versionType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,15 +115,6 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
 
         type = bundle.getString("type");
 
-        if (type.equals("college")) {
-            parentTable = "groups";
-            versionType = "college_student_list_ver";
-        }else{
-            parentTable = "classes";
-            versionType = "lyceum_student_list_ver";
-
-        }
-
         mDatabaseRef = FirebaseDatabase.getInstance().getReference();
         studentRef = FirebaseDatabase.getInstance().getReference();
         foodDatabaseRef = FirebaseDatabase.getInstance().getReference();
@@ -145,7 +130,7 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
         createDialogs();
     }
 
-    public void changeUserDesc() {
+    public void changeUserDesc(){
         Glide.with(this)
                 .load(imgUrl)
                 .placeholder(R.drawable.s_icon)
@@ -198,7 +183,7 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
         btnClearDates.setOnClickListener(this);
         btnBack.setOnClickListener(this);
 
-        summaryDialog = new Dialog(this);
+        summaryDialog  = new Dialog(this);
         summaryDialog.setContentView(R.layout.dialog_summary);
         summaryDialog.setTitle(getResources().getString(R.string.payment));
 
@@ -217,7 +202,7 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
                 checkboxLunch.setTextSize(14.0f);
                 checkboxDinner.setTextSize(14.0f);
 
-                if (isChecked) {
+                if(isChecked){
                     checkboxBreakfast.setTextSize(20.0f);
                 }
             }
@@ -229,7 +214,7 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
                 checkboxLunch.setTextSize(14.0f);
                 checkboxDinner.setTextSize(14.0f);
 
-                if (isChecked) {
+                if(isChecked){
                     checkboxLunch.setTextSize(20.0f);
                 }
             }
@@ -242,7 +227,7 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
                 checkboxLunch.setTextSize(14.0f);
                 checkboxDinner.setTextSize(14.0f);
 
-                if (isChecked) {
+                if(isChecked){
                     checkboxDinner.setTextSize(20.0f);
                 }
             }
@@ -250,21 +235,20 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
 
     }
 
-    public String getIdNumber() {
+    public String getIdNumber(){
         return idNumber;
     }
 
-    public String getType() {
+    public String getType(){
         return type;
     }
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
-                if (selectedFragment == 0) checkboxBreakfast.setChecked(true);
-                else if (selectedFragment == 1) checkboxLunch.setChecked(true);
-                else if (selectedFragment == 2) checkboxDinner.setChecked(true);
+                if(selectedFragment == 0) checkboxBreakfast.setChecked(true);
+                else if(selectedFragment == 1) checkboxLunch.setChecked(true);
+                else if(selectedFragment == 2) checkboxDinner.setChecked(true);
 
                 foodBuyDialog.setTitle(sName);
                 foodBuyDialog.show();
@@ -278,9 +262,9 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
                 calendarDetail.scrollToDate(bDates.get(0));
 
                 foodTitle.setText(bTitle);
-                oneFoodPrice.setText(bPrice + " тенге");
+                oneFoodPrice.setText(bPrice+" тенге");
 
-                allRes.setText(bDates.size() + " күн * " + bPrice + " = " + bRes + " тенге");
+                allRes.setText(bDates.size()+" күн * "+bPrice+" = "+bRes+ " тенге");
                 calendarDetailDialog.show();
 
 
@@ -292,9 +276,9 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
                 calendarDetail.highlightDates(lDates);
                 calendarDetail.scrollToDate(lDates.get(0));
                 foodTitle.setText(lTitle);
-                oneFoodPrice.setText(lPrice + " тенге");
+                oneFoodPrice.setText(lPrice+" тенге");
 
-                allRes.setText(lDates.size() + " күн * " + lPrice + " = " + lRes + " тенге");
+                allRes.setText(lDates.size()+" күн * "+lPrice+" = "+lRes+ " тенге");
 
                 calendarDetailDialog.show();
 
@@ -307,9 +291,9 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
                 calendarDetail.scrollToDate(dDates.get(0));
 
                 foodTitle.setText(dTitle);
-                oneFoodPrice.setText(dPrice + " тенге");
+                oneFoodPrice.setText(dPrice+" тенге");
 
-                allRes.setText(dDates.size() + " күн * " + dPrice + " = " + dRes + " тенге");
+                allRes.setText(dDates.size()+" күн * "+dPrice+" = "+dRes+ " тенге");
 
                 calendarDetailDialog.show();
 
@@ -323,21 +307,26 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
                         breakfastDetail.setVisibility(View.VISIBLE);
 
                         bRes = bDates.size() * bPrice;
-                    } else if (checkboxLunch.isChecked()) {
+                    }
+
+                    else if (checkboxLunch.isChecked()) {
                         checkboxLunch.setTextColor(Color.GREEN);
                         lDates = calendar.getSelectedDates();
                         lunchChecked = true;
                         lunchDetail.setVisibility(View.VISIBLE);
 
                         lRes = lDates.size() * lPrice;
-                    } else if (checkboxDinner.isChecked()) {
+                    }
+
+                    else if (checkboxDinner.isChecked()) {
                         checkboxDinner.setTextColor(Color.GREEN);
                         dDates = calendar.getSelectedDates();
                         dinnerChecked = true;
                         dinnerDetail.setVisibility(View.VISIBLE);
 
                         dRes = dDates.size() * dPrice;
-                    } else {
+                    }
+                    else{
                         Toast.makeText(this, getResources().getString(R.string.foodSelectMistake), Toast.LENGTH_SHORT).show();
                     }
                 } else {
@@ -348,41 +337,44 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
 
             case R.id.btnCalc:
 
-                tvBPrice.setText(bRes + " тенге");
-                tvLPrice.setText(lRes + " тенге");
-                tvDPrice.setText(dRes + " тенге");
-                sumPrice.setText((bRes + lRes + dRes) + " тенге");
+                tvBPrice.setText(bRes+" тенге");
+                tvLPrice.setText(lRes+" тенге");
+                tvDPrice.setText(dRes+" тенге");
+                sumPrice.setText((bRes+lRes+dRes)+" тенге");
                 summaryDialog.show();
                 break;
             case R.id.btnPay:
 
                 dateF = new SimpleDateFormat("dd_MM_yyyy");
-                if (bDates != null && bDates.size() != 0) {
-                    for (Date date : bDates) {
+                if (bDates!=null && bDates.size() !=0 ){
+                    for(Date date: bDates){
                         String cDate = dateF.format(date);
 
                         mDatabaseRef.child("breakfast").child(cDate).setValue(1);
                         foodDatabaseRef.child("f_time").child("breakfast").child(type).child(cDate).child(idNumber).push().setValue(1);
 
-                        Log.i("cal", "Breakfast: " + cDate);
+                        Log.i("cal", "Breakfast: "+cDate);
                     }
                 }
-                if (lDates != null && lDates.size() != 0) {
-                    for (Date date : lDates) {
+
+                if (lDates!=null &&  lDates.size() !=0 ){
+                    for(Date date: lDates){
                         String cDate = dateF.format(date);
                         mDatabaseRef.child("lunch").child(cDate).setValue(1);
                         foodDatabaseRef.child("f_time").child("lunch").child(type).child(cDate).child(idNumber).push().setValue(1);
 
-                        Log.i("cal", "Lunch: " + cDate);
+                        Log.i("cal", "Lunch: "+cDate);
                     }
                 }
-                if (dDates != null && dDates.size() != 0) {
-                    for (Date date : dDates) {
+
+                if (dDates!=null &&  dDates.size() !=0 ){
+                    for(Date date: dDates){
                         String cDate = dateF.format(date);
                         mDatabaseRef.child("dinner").child(cDate).setValue(1);
                         foodDatabaseRef.child("f_time").child("dinner").child(type).child(cDate).child(idNumber).push().setValue(1);
                     }
                 }
+
                 summaryDialog.dismiss();
                 foodBuyDialog.dismiss();
 
@@ -391,21 +383,21 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
             case R.id.btnClearDates:
                 String sTitle = foodTitle.getText().toString();
 
-                if (sTitle.equals(bTitle)) {
+                if(sTitle.equals(bTitle)){
                     bDates.clear();
                     breakfastChecked = false;
                     breakfastDetail.setVisibility(View.INVISIBLE);
                     checkboxBreakfast.setTextColor(Color.BLACK);
                     bRes = 0;
 
-                } else if (sTitle.equals(lTitle)) {
+                }else if(sTitle.equals(lTitle)){
                     lDates.clear();
                     lunchChecked = false;
                     lunchDetail.setVisibility(View.INVISIBLE);
                     checkboxLunch.setTextColor(Color.BLACK);
                     lRes = 0;
 
-                } else if (sTitle.equals(dTitle)) {
+                }else if(sTitle.equals(dTitle)){
                     dDates.clear();
                     dinnerChecked = false;
                     dinnerDetail.setVisibility(View.INVISIBLE);
@@ -440,7 +432,6 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
 
         return super.onOptionsItemSelected(item);
     }
-
     TextView oIdNumber;
 
     public void showDialog(final String tName, final String id_number) {
@@ -464,14 +455,14 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
             public void onClick(View v) {
                 switch (v.getId()) {
                     case R.id.btnOk:
-                        if (isNetworkAvailable(StudentCabinet.this)) {
+                        if (isNetworkAvailable(LyceumPupilCabinet.this)) {
                             updateCardNumber(nIdNumber.getText().toString(), id_number);
-                            Toast.makeText(StudentCabinet.this, tName + " CARD Number өзгерді", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LyceumPupilCabinet.this, tName + " CARD Number өзгерді", Toast.LENGTH_SHORT).show();
                         }
 
                         break;
                     case R.id.btnDel:
-                        if (isNetworkAvailable(StudentCabinet.this)) {
+                        if (isNetworkAvailable(LyceumPupilCabinet.this)) {
 //                            deleteStudent(tName);
                         }
 
@@ -503,42 +494,12 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
 
         oIdNumber.setText("CARD Number: " + sCardNumber);
         sCardNumber = cardNumber;
-        studentRef.child(parentTable).child(student.getGroup()).child(student.getFirebaseKey()).child("card_number").setValue(cardNumber.toLowerCase());
+        studentRef.child("classes").child(student.getGroup()).child(student.getFirebaseKey()).child("card_number").setValue(cardNumber.toLowerCase());
         incrementVersion();
     }
 
-    public void deleteStudent(final String info) {
-        sqdb.delete(TABLE_COLLEGE_STUDENTS, COLUMN_INFO + "='" + info + "'", null);
-
-        Query myTopPostsQuery = mDatabaseRef.child("personnel_store");
-        myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot personnelStore : dataSnapshot.getChildren()) {
-                        Personnel personnel = personnelStore.getValue(Personnel.class);
-                        if (info.equals(personnel.getInfo())) {
-                            String key = personnelStore.getKey();
-
-                            mDatabaseRef.child("personnel_store").child(key).removeValue();
-                            incrementVersion();
-                            break;
-
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
     public void incrementVersion() {
-        Query myTopPostsQuery = studentRef.child(versionType);
+        Query myTopPostsQuery = studentRef.child("lyceum_student_list_ver");
         myTopPostsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -546,7 +507,7 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
                 if (dataSnapshot.exists()) {
                     long version = (long) dataSnapshot.getValue();
                     version++;
-                    studentRef.child(versionType).setValue(version);
+                    studentRef.child("lyceum_student_list_ver").setValue(version);
                 }
             }
 
@@ -589,7 +550,7 @@ public class StudentCabinet extends AppCompatActivity implements View.OnClickLis
 
     public boolean isNetworkAvailable(Context context) {
         ConnectivityManager cm =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null &&

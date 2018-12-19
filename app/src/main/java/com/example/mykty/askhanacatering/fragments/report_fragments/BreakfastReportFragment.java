@@ -81,7 +81,6 @@ public class BreakfastReportFragment extends Fragment {
 
                     modifyAdapter();
 
-
                 }
             }
 
